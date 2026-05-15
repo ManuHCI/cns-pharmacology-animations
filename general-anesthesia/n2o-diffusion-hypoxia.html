@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nitrous Oxide — Diffusion Hypoxia (Fink Effect) | MAMC Pharmacology</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f4f6fa;
+    color: #1a2332;
+    padding: 6px 14px 4px;
+    min-height: 100vh;
+  }
+  header {
+    text-align: center;
+    padding: 2px 0 6px;
+    border-bottom: 2px solid #b7791f;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: 20px;
+    color: #0d2c4d;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: inline-block;
+  }
+  .subtitle {
+    font-size: 12px;
+    color: #4a5568;
+    margin-top: 1px;
+    display: inline-block;
+  }
+  .badge {
+    display: inline-block;
+    background: #b7791f;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 290px;
+    gap: 10px;
+  }
+  .panel {
+    background: white;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 8px rgba(13, 44, 77, 0.06);
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0d2c4d;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    background: #b7791f;
+    border-radius: 2px;
+  }
+
+  /* Animation canvas */
+  .animation-stage {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(180deg, #e6f2ff 0%, #cfe4f7 35%, #f8d5cc 50%, #f0a6a6 70%, #e07b8a 100%);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  svg.alveolus-svg { width: 100%; height: 250px; display: block; }
+
+  /* Pulse oximeter overlay */
+  .spo2-display {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: rgba(0,0,0,0.75);
+    color: #f56565;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid #555;
+    z-index: 5;
+    line-height: 1.2;
+  }
+  .spo2-display .label { font-size: 9px; color: #cbd5e0; font-weight: 600; }
+  .spo2-display .value { font-size: 22px; }
+  .spo2-display.warn  .value { color: #f6cf6e; }
+  .spo2-display.danger .value { color: #f56565; animation: pulse 0.8s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+  .graph-area {
+    margin-top: 8px;
+    background: #0d2c4d;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .graph-title {
+    color: #fff;
+    font-size: 12px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .effect-stat {
+    background: #c8133a;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 8px;
+  }
+  button {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: #0d2c4d; color: white; }
+  .btn-primary:hover { background: #1a3d66; }
+  .btn-toggle { background: #4a5568; color: white; }
+  .btn-toggle.active { background: #38a169; }
+  .btn-secondary { background: #e2e8f0; color: #1a2332; }
+  .btn-secondary:hover { background: #cbd5e0; }
+  .speed-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: 11px;
+    color: #4a5568;
+  }
+  .speed-control input[type="range"] { width: 80px; }
+
+  /* Right panel cards */
+  .mech-card {
+    padding: 6px 9px;
+    border-radius: 5px;
+    border-left: 3px solid;
+    background: #f7fafc;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 5px;
+  }
+  .mech-card.cause { border-color: #c8133a; }
+  .mech-card.cause strong { color: #9b2c2c; display: block; font-size: 11px; margin-bottom: 1px; }
+  .mech-card.effect { border-color: #b7791f; }
+  .mech-card.effect strong { color: #b7791f; display: block; font-size: 11px; margin-bottom: 1px; }
+  .mech-card.prevent { border-color: #38a169; }
+  .mech-card.prevent strong { color: #2f855a; display: block; font-size: 11px; margin-bottom: 1px; }
+
+  .key-point {
+    background: #fff8e1;
+    border: 1px solid #f6cf6e;
+    padding: 6px 8px;
+    border-radius: 5px;
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .key-point strong { color: #b7791f; display: block; margin-bottom: 2px; }
+
+  .drug-list {
+    list-style: none;
+    margin-top: 4px;
+  }
+  .drug-list li {
+    padding: 3px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .drug-list li:last-child { border-bottom: none; }
+  .drug-list li strong { color: #b7791f; }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .comparison-panel {
+    background: #f7fafc;
+    border-radius: 5px;
+    padding: 5px 7px;
+    border-top: 3px solid;
+  }
+  .comparison-panel.danger { border-color: #c8133a; }
+  .comparison-panel.safe   { border-color: #38a169; }
+  .comparison-panel h4 { font-size: 11px; margin-bottom: 2px; color: #0d2c4d; }
+  .comparison-panel .freq {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 1px 0;
+    line-height: 1;
+  }
+  .comparison-panel.danger .freq { color: #c8133a; }
+  .comparison-panel.safe .freq   { color: #38a169; }
+  .comparison-panel small { color: #718096; font-size: 9px; line-height: 1.2; display: block; }
+
+  footer {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 10px;
+    color: #718096;
+  }
+
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nitrous Oxide — Diffusion Hypoxia <span class="badge">Fink Effect · End of Anaesthesia</span></h1>
+  <span class="subtitle"> · Dept. of Pharmacology, MAMC · 2nd Year MBBS</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Animation + graph -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">Alveolus &amp; Pulmonary Capillary — N₂O wash-out</div>
+
+      <!-- Phase banner -->
+      <div id="phaseBanner" style="
+        text-align: center;
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid #2c5282;
+        background: #ebf4fc;
+        color: #2c5282;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+      ">① ANAESTHESIA MAINTENANCE — 70% N₂O equilibrium</div>
+
+      <div class="animation-stage" style="position:relative;">
+        <!-- Pulse oximeter readout -->
+        <div class="spo2-display" id="spo2Display">
+          <div class="label">SpO₂</div>
+          <div class="value" id="spo2Value">99%</div>
+        </div>
+
+        <svg class="alveolus-svg" viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Labels -->
+          <text x="20" y="20" font-size="13" font-weight="700" fill="#0d2c4d">AIRWAY</text>
+          <text x="20" y="270" font-size="13" font-weight="700" fill="#7a1a2a">PULMONARY CAPILLARY (mixed venous → arterial)</text>
+
+          <!-- Bronchiole opening -->
+          <path d="M 380 10 L 380 70 L 460 70 L 520 70 L 520 10 Z"
+                fill="#cae8ff" stroke="#2c5282" stroke-width="2" opacity="0.7"/>
+          <text x="450" y="42" font-size="11" font-weight="700" fill="#2c5282" text-anchor="middle">Bronchiole</text>
+          <!-- Inflow gas label (changes by mode) -->
+          <text id="inflowLabel" x="450" y="60" font-size="10" font-weight="700" fill="#2c5282" text-anchor="middle">N₂O + O₂ mix</text>
+
+          <defs>
+            <marker id="arrHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#3182ce"/>
+            </marker>
+          </defs>
+
+          <!-- N2O reverse-flux arrows (visible during DIFFUSION phase, pointing UP from blood) -->
+          <g id="refluxArrows" opacity="0">
+            <path d="M 160 230 L 160 200" stroke="#3182ce" stroke-width="2" marker-end="url(#arrHead)"/>
+            <path d="M 320 230 L 320 200" stroke="#3182ce" stroke-width="2" marker-end="url(#arrHead)"/>
+            <path d="M 580 230 L 580 200" stroke="#3182ce" stroke-width="2" marker-end="url(#arrHead)"/>
+            <path d="M 740 230 L 740 200" stroke="#3182ce" stroke-width="2" marker-end="url(#arrHead)"/>
+          </g>
+
+          <!-- Alveolus body -->
+          <ellipse id="alveolusBody" cx="450" cy="155" rx="340" ry="80"
+                   fill="rgba(255,255,255,0.55)" stroke="#a86332" stroke-width="2.5"/>
+          <text x="450" y="100" font-size="12" font-weight="700" fill="#7a1a2a" text-anchor="middle" opacity="0.85">ALVEOLAR SPACE</text>
+
+          <!-- Alveolar-capillary membrane -->
+          <line x1="60" y1="225" x2="840" y2="225" stroke="#a86332" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
+          <text x="60" y="222" font-size="9" fill="#a86332" opacity="0.8">alveolar-capillary membrane</text>
+
+          <!-- Capillary lumen -->
+          <rect x="20" y="232" width="860" height="28" fill="rgba(232,55,78,0.15)" stroke="#7a1a2a" stroke-width="1.5"/>
+
+          <!-- Molecule groups -->
+          <g id="n2oMolecules"></g>
+          <g id="o2Molecules"></g>
+
+          <!-- RBC layer (color reflects saturation) -->
+          <g id="rbcLayer"></g>
+
+          <!-- Capillary flow arrow -->
+          <text x="855" y="252" font-size="14" font-weight="700" fill="#7a1a2a" text-anchor="end">→</text>
+        </svg>
+      </div>
+
+      <div class="controls">
+        <button class="btn-primary" id="playBtn">⏸ Pause</button>
+        <button class="btn-secondary" id="stepBtn">▸ Step</button>
+        <button class="btn-secondary" id="modeBtn">🐢 Slow (Teaching)</button>
+        <button class="btn-toggle" id="rescueBtn">🫁 Room Air (no rescue)</button>
+        <div class="speed-control">
+          Speed:
+          <input type="range" id="speedSlider" min="0.25" max="2" step="0.25" value="1">
+          <span id="speedLabel">1.0×</span>
+        </div>
+      </div>
+
+      <!-- SpO2 Graph -->
+      <div class="graph-area">
+        <div class="graph-title">
+          <span>Arterial SpO₂ during recovery from N₂O anaesthesia</span>
+          <span class="effect-stat" id="effectStat">Hypoxia developing ↓</span>
+        </div>
+        <svg id="graphSvg" viewBox="0 0 860 160" style="width:100%; height:115px;">
+          <!-- gridlines & threshold lines -->
+          <line x1="0" y1="20" x2="860" y2="20" stroke="#1e3a5f" stroke-width="0.5" opacity="0.4"/>
+          <line x1="0" y1="55" x2="860" y2="55" stroke="#1e3a5f" stroke-width="0.5" opacity="0.4"/>
+          <line x1="0" y1="90" x2="860" y2="90" stroke="#1e3a5f" stroke-width="0.5" opacity="0.4"/>
+          <line x1="0" y1="125" x2="860" y2="125" stroke="#f56565" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="6" y="22" font-size="10" fill="#cbd5e0">100%</text>
+          <text x="6" y="57" font-size="10" fill="#cbd5e0">93%</text>
+          <text x="6" y="92" font-size="10" fill="#cbd5e0">86%</text>
+          <text x="6" y="122" font-size="10" fill="#f56565">79% (hypoxia)</text>
+          <text x="820" y="155" font-size="10" fill="#cbd5e0">time →</text>
+
+          <!-- Curve: WITH 100% O2 rescue -->
+          <path id="curveRescue" d="" stroke="#48bb78" stroke-width="2.8" fill="none"/>
+          <text x="640" y="32" font-size="10" fill="#48bb78">100% O₂ rescue — stays safe</text>
+
+          <!-- Curve: WITHOUT rescue (room air) -->
+          <path id="curveRoomAir" d="" stroke="#f56565" stroke-width="2.8" fill="none" stroke-dasharray="0"/>
+          <text x="640" y="115" font-size="10" fill="#f56565">Room air — SpO₂ drops</text>
+
+          <!-- Cursor -->
+          <line id="graphCursor" x1="0" y1="10" x2="0" y2="150" stroke="#f6cf6e" stroke-width="2" opacity="0.8"/>
+          <circle id="cursorDotRescue" cx="0" cy="20" r="4" fill="#48bb78"/>
+          <circle id="cursorDotRoomAir" cx="0" cy="20" r="5" fill="#f56565" stroke="white" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <!-- Comparison stats -->
+      <div class="comparison-grid">
+        <div class="comparison-panel danger">
+          <h4>If patient breathes ROOM AIR</h4>
+          <div class="freq" id="dangerStat">SpO₂ ↓ to ~85%</div>
+          <small>21% inspired O₂ cannot keep up with N₂O dilution → diffusion hypoxia</small>
+        </div>
+        <div class="comparison-panel safe">
+          <h4>If 100% O₂ given (5–10 min)</h4>
+          <div class="freq" id="safeStat">SpO₂ ≥ 99%</div>
+          <small>Fresh O₂ overwhelms N₂O dilution → hypoxia prevented</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Teaching content -->
+  <aside>
+    <div class="panel">
+      <div class="panel-title">Why Diffusion Hypoxia Happens</div>
+
+      <div class="mech-card cause">
+        <strong>① Massive reverse flux of N₂O</strong>
+        N₂O has been given at 70% for the duration of the case → blood is <em>saturated</em> with N₂O (its low solubility means it stores in plasma not tissues, but volume is huge). When inspired N₂O = 0, the gradient reverses → N₂O <strong>floods OUT of blood INTO alveolus</strong> in seconds.
+      </div>
+
+      <div class="mech-card effect">
+        <strong>② Alveolar O₂ is diluted</strong>
+        The bolus of N₂O coming up displaces alveolar gas. Room air supplies only 21% O₂ — not enough to replace what's being diluted. Alveolar P<sub>O₂</sub> falls → arterial P<sub>O₂</sub> falls → <strong>SpO₂ drops</strong> (often to 85–90%, sometimes lower).
+      </div>
+
+      <div class="mech-card effect" style="border-color:#553c9a;">
+        <strong style="color:#553c9a;">③ Alveolar CO₂ is also diluted</strong>
+        Same N₂O bolus dilutes CO₂ → ↓ P<sub>aCO₂</sub> → <strong>respiratory drive blunted</strong> → patient hypoventilates → hypoxia worsens.
+      </div>
+
+      <div class="mech-card prevent">
+        <strong>④ Prevention</strong>
+        Administer <strong>100% O₂ for 5–10 minutes</strong> after stopping N₂O. The high inspired O₂ replaces what's diluted; the patient washes out N₂O safely.
+      </div>
+
+      <div class="key-point">
+        <strong>Coined by Bernard Raymond Fink (1955)</strong>
+        Hence "Fink effect." Most clinically relevant in the immediate post-anaesthesia minutes — especially in elderly, obese, or pulmonary-disease patients with low O₂ reserves.
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:8px;">
+      <div class="panel-title">High-Yield Recap</div>
+      <ul class="drug-list">
+        <li><strong>Same physics as 2nd-gas effect</strong> — just in reverse direction (blood→alveolus instead of alveolus→blood)</li>
+        <li><strong>Largest risk window:</strong> first 5–10 min after N₂O off</li>
+        <li><strong>Other low-solubility agents</strong> (Xenon, Desflurane) — similar but less, since not given at 70%</li>
+        <li><strong>Not seen with halothane/iso/sevo alone</strong> — they're given at &lt;5% so reverse flux is small</li>
+        <li><strong>Closely related:</strong> avoid N₂O in <em>any</em> closed gas space (bowel obstruction, pneumothorax, eye Sx, ear Sx)</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="margin-top:8px;">
+      <div class="panel-title">Now Showing</div>
+      <div id="currentState" style="font-size:11px; line-height:1.4;">
+        <strong style="color:#0d2c4d;">Anaesthesia steady state</strong>
+        Blood and alveolus are equilibrated with 70% N₂O. SpO₂ stable. The animation will turn N₂O OFF in a moment — watch what happens.
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  Designed for lecture projection · Dr. Manu Kumar Shetty · Department of Pharmacology, MAMC &amp; LNH, New Delhi
+</footer>
+
+<script>
+// ============================================================
+//  N2O DIFFUSION HYPOXIA (FINK EFFECT) ANIMATION
+//  Phases (one full cycle, then loop):
+//   0 STEADY        — N2O anaesthesia maintenance, baseline SpO2
+//   1 TURNOFF       — N2O turned off; switch inflow to room air OR 100% O2
+//   2 DIFFUSION     — N2O floods OUT of blood INTO alveolus → dilutes O2
+//   3 RECOVERY      — N2O washes out; alveolar gases return to normal
+// ============================================================
+
+const PHASE = { STEADY: 0, TURNOFF: 1, DIFFUSION: 2, RECOVERY: 3 };
+
+const CYCLE_TEACHING = {
+  STEADY_DUR:    1800,
+  TURNOFF_DUR:    700,
+  DIFFUSION_DUR: 3800,
+  RECOVERY_DUR:  3200
+};
+const CYCLE_CLINICAL = {
+  STEADY_DUR:    240,
+  TURNOFF_DUR:   100,
+  DIFFUSION_DUR: 520,
+  RECOVERY_DUR:  440
+};
+let CYCLE = CYCLE_TEACHING;
+let clinicalMode = false;
+
+let phase = PHASE.STEADY;
+let timeInPhase = 0;
+let cycleCount = 0;
+
+let rescueMode = false;   // false = room air ; true = 100% O2 rescue
+let playing = true;
+let speedFactor = 1.0;
+let lastTimestamp = null;
+let simTime = 0;
+
+// Molecules: { x, y, vx, vy, type: 'n2o'|'o2', state: 'alveolar'|'rising'|'exiting', age }
+let molecules = [];
+let rbcs = [];
+
+// Geometry (matches SVG ellipse cx=450, cy=155, rx=340, ry=80)
+const ALV = { cx: 450, cy: 155, rx: 320, ry: 65 };
+const MEMBRANE_Y = 225;
+const CAP_TOP    = 232;
+const CAP_BOTTOM = 260;
+
+// Saturation state (animated smoothly)
+let spo2Live = 99;
+
+// ---------- Molecule helpers ----------
+function randomInAlveolus() {
+  while (true) {
+    const x = ALV.cx + (Math.random() - 0.5) * 2 * ALV.rx;
+    const y = ALV.cy + (Math.random() - 0.5) * 2 * ALV.ry;
+    const dx = (x - ALV.cx) / ALV.rx;
+    const dy = (y - ALV.cy) / ALV.ry;
+    if (dx*dx + dy*dy < 0.9) return { x, y };
+  }
+}
+
+function spawnAlveolar(type, opts) {
+  opts = opts || {};
+  let x, y;
+  if (opts.fromBlood) {
+    // Rising up from the membrane (reverse diffusion)
+    x = 80 + Math.random() * 740;
+    y = 220 + Math.random() * 4;
+  } else if (opts.fromAirway) {
+    // Coming down from bronchiole
+    x = 420 + Math.random() * 60;
+    y = 75 + Math.random() * 10;
+  } else {
+    const p = randomInAlveolus();
+    x = p.x; y = p.y;
+  }
+  molecules.push({
+    x, y,
+    vx: (Math.random() - 0.5) * 0.5,
+    vy: opts.fromBlood ? -(0.5 + Math.random() * 0.4)
+        : opts.fromAirway ? (0.5 + Math.random() * 0.3)
+        : (Math.random() - 0.5) * 0.5,
+    type: type,
+    state: 'alveolar',
+    age: 0
+  });
+}
+
+function initMolecules() {
+  molecules = [];
+  // Anaesthesia steady state: 70% N2O + 30% O2 → many blue, some red
+  for (let i = 0; i < 18; i++) spawnAlveolar('n2o');
+  for (let i = 0; i < 8;  i++) spawnAlveolar('o2');
+}
+
+function initRBCs() {
+  rbcs = [];
+  for (let i = 0; i < 6; i++) {
+    rbcs.push({ x: i * 150 + Math.random() * 50, y: CAP_TOP + 12, vx: 0.8 });
+  }
+}
+
+// ---------- Phase logic ----------
+function stepPhase(dt) {
+  timeInPhase += dt;
+  const dur = [CYCLE.STEADY_DUR, CYCLE.TURNOFF_DUR, CYCLE.DIFFUSION_DUR, CYCLE.RECOVERY_DUR][phase];
+  if (timeInPhase >= dur) {
+    phase = (phase + 1) % 4;
+    timeInPhase = 0;
+    if (phase === PHASE.STEADY) {
+      // New cycle — reset to anaesthesia equilibrium
+      cycleCount++;
+      initMolecules();
+    }
+  }
+}
+
+// Returns target SpO2 for the current state of the simulation
+function targetSpO2() {
+  if (rescueMode) return 99;  // 100% O2 prevents hypoxia
+  if (phase === PHASE.STEADY)  return 99;
+  if (phase === PHASE.TURNOFF) return 99;
+  if (phase === PHASE.DIFFUSION) {
+    // Exponential drop from 99 toward 84
+    const p = timeInPhase / CYCLE.DIFFUSION_DUR;
+    return 99 - 15 * (1 - Math.exp(-3 * p));
+  }
+  if (phase === PHASE.RECOVERY) {
+    // Exponential recovery from ~84 back toward 99
+    const p = timeInPhase / CYCLE.RECOVERY_DUR;
+    return 84 + 15 * (1 - Math.exp(-3 * p));
+  }
+  return 99;
+}
+
+// ---------- Molecule dynamics ----------
+function updateMolecules(dt) {
+  for (const m of molecules) {
+    m.age += dt;
+    m.x += m.vx * speedFactor * (dt / 16);
+    m.y += m.vy * speedFactor * (dt / 16);
+
+    // Damping toward zero vy (let molecules settle into random motion)
+    m.vy *= 0.985;
+    if (Math.random() < 0.05) {
+      m.vx += (Math.random() - 0.5) * 0.3;
+      m.vy += (Math.random() - 0.5) * 0.25;
+    }
+    const sp = Math.hypot(m.vx, m.vy);
+    if (sp > 1.0) { m.vx *= 1.0/sp; m.vy *= 1.0/sp; }
+
+    // Boundary handling for alveolus
+    const dx = (m.x - ALV.cx) / ALV.rx;
+    const dy = (m.y - ALV.cy) / ALV.ry;
+    const r2 = dx*dx + dy*dy;
+    if (r2 > 1) {
+      // Check if escaping out the TOP (toward bronchiole) — let it exit upward (= exhaled)
+      if (m.y < ALV.cy - 30 && Math.abs(m.x - 450) < 90) {
+        m.state = 'exiting';
+        continue;
+      }
+      // Otherwise push back
+      const r = Math.sqrt(r2);
+      m.x = ALV.cx + (dx / r) * ALV.rx * 0.97;
+      m.y = ALV.cy + (dy / r) * ALV.ry * 0.97;
+      m.vx *= -1;
+      m.vy *= -1;
+    }
+  }
+
+  // Remove exiting molecules once they leave through the top
+  molecules = molecules.filter(m => !(m.state === 'exiting' && m.y < 30));
+
+  // === Phase-specific spawning / removal ===
+  const fr = speedFactor * (dt / 16);
+
+  if (phase === PHASE.STEADY) {
+    // Maintain ~ 18 N2O + 8 O2 (anaesthesia mix)
+    maintainCount('n2o', 18, fr);
+    maintainCount('o2',   8, fr);
+  }
+  else if (phase === PHASE.TURNOFF) {
+    // Brief transition — just keep numbers stable
+    maintainCount('n2o', 18, fr);
+    maintainCount('o2',   8, fr);
+  }
+  else if (phase === PHASE.DIFFUSION) {
+    // N2O floods OUT of blood INTO alveolus — spawn many from below
+    if (Math.random() < 0.9 * fr) {
+      spawnAlveolar('n2o', { fromBlood: true });
+    }
+    // O2 inflow from airway:
+    //   Room air = slow (only 21% of inspired)
+    //   100% O2  = fast (rescue)
+    const o2InflowRate = rescueMode ? 1.1 : 0.15;
+    if (Math.random() < o2InflowRate * fr) {
+      spawnAlveolar('o2', { fromAirway: true });
+    }
+    // Cap N2O at high level during peak diffusion
+    capCount('n2o', 35);
+    capCount('o2',  rescueMode ? 28 : 10);  // O2 depleted without rescue
+    // Slow outward washout of N2O at the top (exhaled)
+    if (Math.random() < 0.25 * fr) {
+      const candidates = molecules.filter(m => m.type === 'n2o' && m.state === 'alveolar' && m.y < 130);
+      if (candidates.length > 0) {
+        candidates[Math.floor(Math.random()*candidates.length)].state = 'exiting';
+      }
+    }
+  }
+  else if (phase === PHASE.RECOVERY) {
+    // N2O washing out — gradually reduce; O2 returning to normal
+    capCount('n2o', Math.max(4, 35 - Math.floor(35 * (timeInPhase / CYCLE.RECOVERY_DUR))));
+    // Maintain O2 according to rescue mode
+    const o2Target = rescueMode ? 25 : 12;
+    maintainCount('o2', o2Target, fr);
+    // Exit-bias for N2O (washout through bronchiole)
+    if (Math.random() < 0.6 * fr) {
+      const candidates = molecules.filter(m => m.type === 'n2o' && m.state === 'alveolar');
+      if (candidates.length > 0) {
+        const target = candidates[Math.floor(Math.random()*candidates.length)];
+        target.vy = -0.6;  // bias upward → eventually exits via top
+      }
+    }
+  }
+}
+
+function maintainCount(type, target, fr) {
+  const present = molecules.filter(m => m.type === type && m.state !== 'exiting').length;
+  if (present < target && Math.random() < 0.6 * fr) {
+    spawnAlveolar(type);
+  } else if (present > target + 2 && Math.random() < 0.3 * fr) {
+    const candidates = molecules.filter(m => m.type === type && m.state === 'alveolar');
+    if (candidates.length > 0) {
+      candidates[Math.floor(Math.random()*candidates.length)].state = 'exiting';
+      candidates[0].vy = -0.6;
+    }
+  }
+}
+
+function capCount(type, maxCount) {
+  const present = molecules.filter(m => m.type === type && m.state === 'alveolar');
+  if (present.length > maxCount) {
+    const excess = present.length - maxCount;
+    for (let i = 0; i < excess; i++) {
+      present[i].state = 'exiting';
+      present[i].vy = -0.6;
+    }
+  }
+}
+
+function updateRBCs(dt) {
+  for (const r of rbcs) {
+    r.x += r.vx * speedFactor * (dt / 16);
+    if (r.x > 900) r.x = -30;
+  }
+}
+
+// ---------- Rendering ----------
+function renderMolecules() {
+  const n2oG = document.getElementById('n2oMolecules');
+  const o2G  = document.getElementById('o2Molecules');
+  let n2oHTML = '', o2HTML = '';
+  for (const m of molecules) {
+    if (m.type === 'n2o') {
+      n2oHTML += `<circle cx="${m.x.toFixed(1)}" cy="${m.y.toFixed(1)}" r="7" fill="#3182ce" stroke="#1a365d" stroke-width="1.2"/>`;
+      n2oHTML += `<text x="${m.x.toFixed(1)}" y="${(m.y+2.5).toFixed(1)}" font-size="7" font-weight="800" fill="white" text-anchor="middle">N₂O</text>`;
+    } else {
+      o2HTML += `<circle cx="${m.x.toFixed(1)}" cy="${m.y.toFixed(1)}" r="8" fill="#dc2626" stroke="#7a1a2a" stroke-width="1.3"/>`;
+      o2HTML += `<text x="${m.x.toFixed(1)}" y="${(m.y+2.5).toFixed(1)}" font-size="7" font-weight="800" fill="white" text-anchor="middle">O₂</text>`;
+    }
+  }
+  n2oG.innerHTML = n2oHTML;
+  o2G.innerHTML  = o2HTML;
+}
+
+function spo2ToRBCColor(sp) {
+  // Map SpO2 (80-100%) to a colour: bright red → dark purple
+  const t = Math.max(0, Math.min(1, (sp - 80) / 20));  // 0 at 80%, 1 at 100%
+  // Bright red oxy: rgb(220, 38, 38)
+  // Dark deox:     rgb(76, 29, 149)
+  const r = Math.round(76 + (220 - 76) * t);
+  const g = Math.round(29 + (38 - 29) * t);
+  const b = Math.round(149 + (38 - 149) * t);
+  return { fill: `rgb(${r},${g},${b})`, stroke: `rgb(${Math.max(0,r-90)},${Math.max(0,g-20)},${Math.max(0,b-50)})` };
+}
+
+function renderRBCs() {
+  const g = document.getElementById('rbcLayer');
+  const col = spo2ToRBCColor(spo2Live);
+  let html = '';
+  for (const r of rbcs) {
+    html += `<ellipse cx="${r.x.toFixed(1)}" cy="${r.y.toFixed(1)}" rx="11" ry="6" fill="${col.fill}" stroke="${col.stroke}" stroke-width="1"/>`;
+    html += `<ellipse cx="${r.x.toFixed(1)}" cy="${r.y.toFixed(1)}" rx="5" ry="2.5" fill="${col.stroke}" opacity="0.55"/>`;
+  }
+  g.innerHTML = html;
+}
+
+// ---------- SpO2 display ----------
+function updateSpO2Display() {
+  const target = targetSpO2();
+  // Smooth toward target
+  spo2Live += (target - spo2Live) * 0.08 * speedFactor;
+  const v = Math.round(spo2Live);
+  const valEl = document.getElementById('spo2Value');
+  const dispEl = document.getElementById('spo2Display');
+  valEl.textContent = v + '%';
+  dispEl.classList.remove('warn','danger');
+  if (v < 90) dispEl.classList.add('danger');
+  else if (v < 95) dispEl.classList.add('warn');
+}
+
+// ---------- Phase banner ----------
+function updatePhaseBanner() {
+  const banner = document.getElementById('phaseBanner');
+  const labels = {
+    [PHASE.STEADY]:    { text: '① ANAESTHESIA MAINTENANCE — 70% N₂O equilibrium', color: '#2c5282', bg: '#ebf4fc' },
+    [PHASE.TURNOFF]:   { text: '② N₂O TURNED OFF — switching inspired gas',       color: '#4a5568', bg: '#f7fafc' },
+    [PHASE.DIFFUSION]: { text: '③ REVERSE DIFFUSION — N₂O flooding alveolus from blood', color: '#7a1a2a', bg: '#fef1f1' },
+    [PHASE.RECOVERY]:  { text: '④ WASHOUT — alveolar gases returning to baseline', color: '#2f855a', bg: '#f0fdf4' }
+  };
+  const lbl = labels[phase];
+  banner.textContent = lbl.text;
+  banner.style.color = lbl.color;
+  banner.style.background = lbl.bg;
+  banner.style.borderColor = lbl.color;
+
+  // Reflux arrows visible only during DIFFUSION
+  document.getElementById('refluxArrows').setAttribute('opacity', phase === PHASE.DIFFUSION ? 1 : 0);
+
+  // Inflow label changes after TURNOFF
+  const inflowLabel = document.getElementById('inflowLabel');
+  if (phase === PHASE.STEADY) {
+    inflowLabel.textContent = 'N₂O + O₂ mix (70/30)';
+    inflowLabel.setAttribute('fill', '#2c5282');
+  } else {
+    if (rescueMode) {
+      inflowLabel.textContent = '100% O₂ (rescue)';
+      inflowLabel.setAttribute('fill', '#2f855a');
+    } else {
+      inflowLabel.textContent = 'Room Air (21% O₂)';
+      inflowLabel.setAttribute('fill', '#7a1a2a');
+    }
+  }
+}
+
+// ---------- Graph ----------
+const GRAPH_T_MAX = () => CYCLE.STEADY_DUR + CYCLE.TURNOFF_DUR + CYCLE.DIFFUSION_DUR + CYCLE.RECOVERY_DUR;
+
+function spO2RoomAirAt(t) {
+  // Same model as targetSpO2() but as a pure function of cycle-time
+  const dS = CYCLE.STEADY_DUR;
+  const dT = CYCLE.TURNOFF_DUR;
+  const dD = CYCLE.DIFFUSION_DUR;
+  const dR = CYCLE.RECOVERY_DUR;
+  if (t < dS + dT) return 99;
+  if (t < dS + dT + dD) {
+    const p = (t - dS - dT) / dD;
+    return 99 - 15 * (1 - Math.exp(-3 * p));
+  }
+  if (t < dS + dT + dD + dR) {
+    const p = (t - dS - dT - dD) / dR;
+    return 84 + 15 * (1 - Math.exp(-3 * p));
+  }
+  return 99;
+}
+
+function buildGraphCurves() {
+  const N = 200;
+  const tMax = GRAPH_T_MAX();
+  const tToX = t => (t / tMax) * 860;
+  const spToY = s => 20 + (100 - s) * (130 / 25);  // 100% → y=20, 75% → y=150
+
+  let dRoom = '', dRescue = '';
+  for (let i = 0; i <= N; i++) {
+    const t = (i / N) * tMax;
+    const x = tToX(t);
+    const yRoom   = spToY(spO2RoomAirAt(t));
+    const yRescue = spToY(99);
+    dRoom   += (i === 0 ? 'M ' : 'L ') + x.toFixed(1) + ' ' + yRoom.toFixed(1) + ' ';
+    dRescue += (i === 0 ? 'M ' : 'L ') + x.toFixed(1) + ' ' + yRescue.toFixed(1) + ' ';
+  }
+  document.getElementById('curveRoomAir').setAttribute('d', dRoom);
+  document.getElementById('curveRescue').setAttribute('d',  dRescue);
+}
+
+function updateGraphCursor() {
+  const tMax = GRAPH_T_MAX();
+  // simTime is monotonic; mod into cycle window
+  const tCycle = simTime % tMax;
+  const x = (tCycle / tMax) * 860;
+  document.getElementById('graphCursor').setAttribute('x1', x);
+  document.getElementById('graphCursor').setAttribute('x2', x);
+
+  const spToY = s => 20 + (100 - s) * (130 / 25);
+  const yRoom   = spToY(spO2RoomAirAt(tCycle));
+  const yRescue = spToY(99);
+
+  // Highlight whichever scenario is active
+  document.getElementById('cursorDotRoomAir').setAttribute('cx', x);
+  document.getElementById('cursorDotRoomAir').setAttribute('cy', yRoom);
+  document.getElementById('cursorDotRescue').setAttribute('cx', x);
+  document.getElementById('cursorDotRescue').setAttribute('cy', yRescue);
+
+  // Style: live dot is bigger/brighter
+  if (rescueMode) {
+    document.getElementById('cursorDotRescue').setAttribute('r', 6);
+    document.getElementById('cursorDotRescue').setAttribute('stroke', 'white');
+    document.getElementById('cursorDotRescue').setAttribute('stroke-width', 1.5);
+    document.getElementById('cursorDotRoomAir').setAttribute('r', 3);
+    document.getElementById('cursorDotRoomAir').setAttribute('stroke', 'none');
+  } else {
+    document.getElementById('cursorDotRoomAir').setAttribute('r', 6);
+    document.getElementById('cursorDotRoomAir').setAttribute('stroke', 'white');
+    document.getElementById('cursorDotRoomAir').setAttribute('stroke-width', 1.5);
+    document.getElementById('cursorDotRescue').setAttribute('r', 3);
+    document.getElementById('cursorDotRescue').setAttribute('stroke', 'none');
+  }
+}
+
+// ---------- Now-Showing text & stats ----------
+function updateCurrentStateText() {
+  const el = document.getElementById('currentState');
+  let modeLbl = rescueMode ? '100% O₂ rescue' : 'Room air (no rescue)';
+  const phaseTexts = {
+    [PHASE.STEADY]: `
+      <strong style="color:#0d2c4d;">Anaesthesia steady state</strong>
+      Blood and alveolus equilibrated with <strong>70% N₂O + 30% O₂</strong>. Patient is anaesthetised and saturating well. Inspired gas via bronchiole = anaesthesia mix.
+    `,
+    [PHASE.TURNOFF]: `
+      <strong style="color:#4a5568;">N₂O turned OFF</strong>
+      Inspired gas just switched to <strong>${rescueMode ? '100% O₂' : 'room air (21% O₂)'}</strong>. Blood is still saturated with N₂O — the reverse gradient is about to open.
+    `,
+    [PHASE.DIFFUSION]: rescueMode ? `
+      <strong style="color:#2f855a;">Diffusion event — protected by O₂ rescue</strong>
+      N₂O is flooding upward from blood (↑ arrows). But the inflow of <strong>100% O₂</strong> keeps alveolar P<sub>O₂</sub> high → arterial SpO₂ remains ≥ 99%. Hypoxia prevented.
+    ` : `
+      <strong style="color:#c8133a;">⚠ Diffusion HYPOXIA developing</strong>
+      N₂O is flooding upward from blood (↑ arrows), <strong>diluting alveolar O₂</strong>. With only 21% inspired O₂, alveolar P<sub>O₂</sub> falls → arterial SpO₂ drops. RBCs visibly darken in the capillary.
+    `,
+    [PHASE.RECOVERY]: `
+      <strong style="color:#2f855a;">Washout phase</strong>
+      Residual N₂O is being exhaled. ${rescueMode
+        ? 'O₂ remained adequate throughout — SpO₂ never dropped.'
+        : 'Alveolar O₂ recovering; SpO₂ climbing back toward baseline.'}
+    `
+  };
+  el.innerHTML = phaseTexts[phase];
+
+  // Live stats
+  document.getElementById('dangerStat').textContent = rescueMode ? '(prevented)' : 'SpO₂ ↓ ~85%';
+  document.getElementById('safeStat').textContent   = 'SpO₂ ≥ 99%';
+  const effectEl = document.getElementById('effectStat');
+  if (rescueMode) {
+    effectEl.textContent = '100% O₂ — hypoxia prevented';
+    effectEl.style.background = '#38a169';
+  } else if (phase === PHASE.DIFFUSION) {
+    effectEl.textContent = '⚠ Hypoxia developing ↓';
+    effectEl.style.background = '#c8133a';
+  } else if (phase === PHASE.RECOVERY) {
+    effectEl.textContent = 'Washout in progress';
+    effectEl.style.background = '#b7791f';
+  } else {
+    effectEl.textContent = 'Steady state — watch what happens';
+    effectEl.style.background = '#2c5282';
+  }
+}
+
+// ---------- Main loop ----------
+function loop(ts) {
+  if (!lastTimestamp) lastTimestamp = ts;
+  const dtReal = ts - lastTimestamp;
+  lastTimestamp = ts;
+  if (playing) {
+    const dt = dtReal * speedFactor;
+    simTime += dt;
+    stepPhase(dt);
+    updateMolecules(dt);
+    updateRBCs(dt);
+    updateSpO2Display();
+    renderMolecules();
+    renderRBCs();
+    updatePhaseBanner();
+    updateGraphCursor();
+    updateCurrentStateText();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---------- Controls ----------
+document.getElementById('playBtn').addEventListener('click', (e) => {
+  playing = !playing;
+  e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+});
+
+document.getElementById('stepBtn').addEventListener('click', () => {
+  phase = (phase + 1) % 4;
+  timeInPhase = 0;
+  if (phase === PHASE.STEADY) initMolecules();
+  updatePhaseBanner();
+});
+
+document.getElementById('modeBtn').addEventListener('click', (e) => {
+  clinicalMode = !clinicalMode;
+  CYCLE = clinicalMode ? CYCLE_CLINICAL : CYCLE_TEACHING;
+  e.target.textContent = clinicalMode ? '🐇 Fast (Clinical 10×)' : '🐢 Slow (Teaching)';
+  phase = PHASE.STEADY;
+  timeInPhase = 0;
+  cycleCount = 0;
+  buildGraphCurves();   // axis duration changed
+  initMolecules();
+});
+
+document.getElementById('rescueBtn').addEventListener('click', (e) => {
+  rescueMode = !rescueMode;
+  e.target.classList.toggle('active');
+  e.target.textContent = rescueMode ? '💨 100% O₂ (rescue)' : '🫁 Room Air (no rescue)';
+  // Reset to STEADY so the comparison runs cleanly from the start
+  phase = PHASE.STEADY;
+  timeInPhase = 0;
+  initMolecules();
+});
+
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+  speedFactor = parseFloat(e.target.value);
+  document.getElementById('speedLabel').textContent = speedFactor.toFixed(2) + '×';
+});
+
+// ---------- Initialise ----------
+buildGraphCurves();
+initMolecules();
+initRBCs();
+requestAnimationFrame(loop);
+
+</script>
+
+</body>
+</html>

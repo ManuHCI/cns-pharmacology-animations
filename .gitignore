@@ -1,0 +1,19 @@
+# Lecture slide source files — kept local, not published
+*.pptx
+*.ppt
+~$*.pptx
+~$*.ppt
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Common local-only folders
+.vscode/
+.idea/

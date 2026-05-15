@@ -1,0 +1,9 @@
+# Normalise line endings inside the repo to LF for all text files.
+# Working tree on Windows can still use CRLF locally.
+* text=auto eol=lf
+
+# Be explicit for web assets
+*.html text eol=lf
+*.css  text eol=lf
+*.js   text eol=lf
+*.md   text eol=lf

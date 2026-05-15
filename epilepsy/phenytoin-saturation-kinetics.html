@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phenytoin Saturation Kinetics — MAMC Pharmacology</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f4f6fa;
+    color: #1a2332;
+    padding: 6px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow: hidden;
+  }
+
+  /* Compact header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 6px;
+    border-bottom: 2px solid #c8133a;
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 17px; color: #0d2c4d; font-weight: 700; }
+  header .subtitle { font-size: 11px; color: #4a5568; }
+
+  /* Dose strip */
+  .dose-strip {
+    display: grid;
+    grid-template-columns: 1fr 190px;
+    gap: 14px;
+    align-items: center;
+    background: white;
+    padding: 7px 14px;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(13, 44, 77, 0.06);
+    flex-shrink: 0;
+  }
+  .slider-wrap label {
+    font-size: 12px; font-weight: 700; color: #0d2c4d;
+    display: block; margin-bottom: 4px;
+  }
+  .slider-with-ticks { position: relative; padding-bottom: 13px; }
+  input[type="range"]#doseSlider {
+    width: 100%; height: 10px; -webkit-appearance: none;
+    background: linear-gradient(to right,
+      #38a169 0%, #38a169 50%,
+      #d69e2e 50%, #d69e2e 70%,
+      #c8133a 70%, #c8133a 88%,
+      #553c9a 88%, #553c9a 100%);
+    border-radius: 5px; outline: none;
+  }
+  input[type="range"]#doseSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #0d2c4d; border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer;
+  }
+  input[type="range"]#doseSlider::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #0d2c4d; border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer;
+  }
+  .slider-ticks {
+    position: absolute; width: 100%; top: 13px;
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: #4a5568;
+  }
+  .dose-pill {
+    background: #0d2c4d; color: white;
+    padding: 5px 10px; border-radius: 8px; text-align: center;
+  }
+  .dose-pill .num { font-size: 26px; font-weight: 800; line-height: 1; }
+  .dose-pill .lbl { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+
+  /* Status banner */
+  .status-banner {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px; font-weight: 700;
+    text-align: center; border: 2px solid;
+    flex-shrink: 0;
+  }
+  .status-subtherap { background: #ebf8ff; color: #2c5282; border-color: #4299e1; }
+  .status-therap    { background: #f0fdf4; color: #22543d; border-color: #38a169; }
+  .status-borderline{ background: #fffbeb; color: #744210; border-color: #d69e2e; }
+  .status-toxic     { background: #fff5f5; color: #742a2a; border-color: #c8133a; }
+  .status-severe    { background: #faf5ff; color: #322659; border-color: #553c9a; }
+
+  /* Toolbar */
+  .toolbar {
+    background: #0d2c4d; color: white;
+    padding: 7px 12px;
+    display: flex; align-items: center; gap: 10px;
+    border-radius: 8px 8px 0 0;
+    flex-shrink: 0;
+  }
+  .toolbar .chart-num {
+    background: #c8133a; color: white;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; flex-shrink: 0;
+  }
+  .toolbar .chart-title-text {
+    font-size: 14px; font-weight: 700; flex: 1;
+  }
+  .toolbar label { font-size: 12px; font-weight: 700; }
+  .toolbar select {
+    padding: 5px 8px; border-radius: 5px;
+    border: 1.5px solid #1a3d66;
+    background: white; color: #0d2c4d;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .nav-btn {
+    background: #c8133a; color: white; border: none;
+    padding: 5px 11px; border-radius: 5px; cursor: pointer;
+    font-weight: 700; font-size: 14px; font-family: inherit;
+  }
+  .nav-btn:hover:not(:disabled) { background: #a30f30; }
+  .nav-btn:disabled { background: #6c757d; cursor: not-allowed; opacity: 0.4; }
+
+  /* Main grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Chart column */
+  .chart-col {
+    background: white;
+    border-radius: 0 0 8px 8px;
+    padding: 5px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    box-shadow: 0 1px 6px rgba(13, 44, 77, 0.06);
+  }
+  svg.main-chart {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: block;
+    background: #fafbfc;
+    border-radius: 4px;
+  }
+  .tip-strip {
+    padding: 5px 10px;
+    background: #fff8dc;
+    border-left: 3px solid #d69e2e;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.35;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .tip-strip strong { color: #744210; }
+  .tip-strip .key {
+    background: #ffe9b3; padding: 0 4px;
+    border-radius: 2px; font-weight: 700;
+  }
+
+  /* Side panel */
+  aside.side {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+  }
+  .readouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .mini-card {
+    background: white;
+    padding: 5px 9px;
+    border-radius: 6px;
+    border-top: 3px solid #0d2c4d;
+    box-shadow: 0 1px 4px rgba(13, 44, 77, 0.06);
+  }
+  .mini-card.warn { border-top-color: #d69e2e; }
+  .mini-card.danger { border-top-color: #c8133a; }
+  .mini-card .lbl {
+    font-size: 9px; color: #4a5568;
+    text-transform: uppercase; font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .mini-card .val {
+    font-size: 19px; font-weight: 800; color: #0d2c4d;
+    line-height: 1; margin-top: 2px;
+  }
+  .mini-card .unit {
+    font-size: 11px; color: #4a5568; font-weight: 500;
+  }
+  .implications {
+    background: white;
+    border-radius: 8px;
+    padding: 8px 12px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    box-shadow: 0 1px 6px rgba(13, 44, 77, 0.06);
+    display: flex; flex-direction: column;
+  }
+  .implications h3 {
+    font-size: 11px;
+    color: #0d2c4d;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+  .implications h3::before {
+    content: '';
+    width: 3px; height: 13px;
+    background: #c8133a;
+    border-radius: 2px;
+  }
+  .implications ul { list-style: none; overflow-y: auto; flex: 1; }
+  .implications li {
+    padding: 4px 0 4px 14px;
+    position: relative;
+    font-size: 11.5px;
+    line-height: 1.35;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .implications li:last-child { border-bottom: none; }
+  .implications li::before {
+    content: '▸';
+    position: absolute; left: 2px;
+    color: #c8133a; font-weight: 700;
+  }
+  .implications li strong { color: #c8133a; }
+
+  /* Responsive fallback */
+  @media (max-width: 950px) {
+    .main-grid { grid-template-columns: 1fr; }
+    body { overflow-y: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Phenytoin: First-Order ⇌ Zero-Order Kinetics</h1>
+  <div class="subtitle">MAMC Pharmacology · Dr. Manu Kumar Shetty</div>
+</header>
+
+<div class="dose-strip">
+  <div class="slider-wrap">
+    <label>Drag to change daily dose of phenytoin (70 kg adult)</label>
+    <div class="slider-with-ticks">
+      <input type="range" id="doseSlider" min="50" max="495" step="5" value="300">
+      <div class="slider-ticks">
+        <span>50</span><span>150</span><span>250</span><span>350</span><span>450</span><span>495 mg</span>
+      </div>
+    </div>
+  </div>
+  <div class="dose-pill">
+    <div class="num"><span id="doseValue">300</span> mg</div>
+    <div class="lbl">per day · oral</div>
+  </div>
+</div>
+
+<div class="status-banner status-therap" id="statusBanner">
+  ◉ Therapeutic — typical adult maintenance dose
+</div>
+
+<div class="toolbar">
+  <span class="chart-num" id="chartNum">1</span>
+  <span class="chart-title-text" id="chartTitleText">Dose → Steady-state Concentration (Css)</span>
+  <label>Graph:</label>
+  <select id="chartSelect">
+    <option value="1">1. Dose → Css</option>
+    <option value="2">2. Michaelis-Menten</option>
+    <option value="3">3. Conc. vs Time</option>
+  </select>
+  <button class="nav-btn" id="prevChart">←</button>
+  <button class="nav-btn" id="nextChart">→</button>
+</div>
+
+<div class="main-grid">
+  <div class="chart-col">
+    <svg class="main-chart" id="mainChart" viewBox="0 0 700 400" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tip-strip" id="tipStrip"></div>
+  </div>
+
+  <aside class="side">
+    <div class="readouts">
+      <div class="mini-card" id="cardCss">
+        <div class="lbl">Steady-state Css</div>
+        <div class="val"><span id="cssValue">7.5</span><span class="unit"> mg/L</span></div>
+      </div>
+      <div class="mini-card" id="cardT12">
+        <div class="lbl">Apparent t½</div>
+        <div class="val"><span id="halfLifeValue">17</span><span class="unit"> h</span></div>
+      </div>
+      <div class="mini-card" id="cardSat">
+        <div class="lbl">Enzyme sat.</div>
+        <div class="val"><span id="satValue">60</span><span class="unit">%</span></div>
+      </div>
+      <div class="mini-card" id="cardTss">
+        <div class="lbl">→ 90% steady state</div>
+        <div class="val"><span id="tssValue">5.6</span><span class="unit"> d</span></div>
+      </div>
+    </div>
+    <div class="implications">
+      <h3>Clinical Implications</h3>
+      <ul id="implicationsList"></ul>
+    </div>
+  </aside>
+</div>
+
+<script>
+// ============================================================
+//  Phenytoin saturation kinetics
+// ============================================================
+const Vmax = 500;
+const Km   = 5;
+const Vd   = 50;
+const THERAP_LOW = 10, THERAP_HIGH = 20, TOXIC = 30;
+
+function getCss(dose) {
+  if (dose >= Vmax) return 999;
+  return Km * dose / (Vmax - dose);
+}
+function getElimRate(C) { return Vmax * C / (Km + C); }
+function getHalfLife(C) {
+  if (C <= 0) return 0;
+  return 0.693 * Vd * (Km + C) / Vmax * 24;
+}
+function getSaturation(C) { return C / (Km + C); }
+function simulate(dose, days, dt) {
+  let C = 0;
+  const pts = [];
+  const steps = Math.round(days / dt);
+  for (let i = 0; i <= steps; i++) {
+    pts.push({ t: i * dt, c: C });
+    const elim = getElimRate(C);
+    const dC = (dose - elim) / Vd * dt;
+    C += dC;
+    if (C < 0) C = 0;
+    if (C > 200) C = 200;
+  }
+  return pts;
+}
+function timeTo90pct(dose) {
+  const css = getCss(dose);
+  if (!isFinite(css) || css > 100) return 30;
+  const target = 0.9 * css;
+  const dt = 0.05;
+  let C = 0;
+  for (let i = 0; i < 30/dt; i++) {
+    const elim = getElimRate(C);
+    C += (dose - elim) / Vd * dt;
+    if (C >= target) return i * dt;
+  }
+  return 30;
+}
+
+// Chart dimensions in viewBox coords
+const W = 700, H = 400;
+const ML = 70, MR = 30, MT = 30, MB = 60;
+const innerW = W - ML - MR;
+const innerH = H - MT - MB;
+
+// --- GRAPH 1: Dose vs Css ---
+function renderDoseCssChart(dose) {
+  const maxDose = 499, maxCss = 50;
+  const xScale = d => ML + (d / maxDose) * innerW;
+  const yScale = c => MT + innerH - (Math.min(c, maxCss) / maxCss) * innerH;
+  let path = '';
+  for (let d = 0; d <= maxDose; d += 2) {
+    const c = getCss(d);
+    path += (path === '' ? 'M' : 'L') + xScale(d).toFixed(1) + ' ' + yScale(c).toFixed(1);
+  }
+  const yTherapHigh = yScale(THERAP_HIGH);
+  const yTherapLow  = yScale(THERAP_LOW);
+  const yToxic      = yScale(TOXIC);
+  const cx = xScale(dose);
+  const cy = yScale(getCss(dose));
+  const cssVal = getCss(dose);
+
+  let html = '';
+  html += `<rect x="${ML}" y="${yTherapHigh}" width="${innerW}" height="${yTherapLow-yTherapHigh}" fill="#38a169" opacity="0.15"/>`;
+  html += `<text x="${ML+innerW-6}" y="${(yTherapHigh+yTherapLow)/2+5}" font-size="13" fill="#22543d" text-anchor="end" font-weight="700">Therapeutic (10–20 mg/L)</text>`;
+  html += `<rect x="${ML}" y="${MT}" width="${innerW}" height="${yToxic-MT}" fill="#c8133a" opacity="0.1"/>`;
+  html += `<text x="${ML+innerW-6}" y="${MT+16}" font-size="13" fill="#742a2a" text-anchor="end" font-weight="700">Toxic (&gt; 30 mg/L)</text>`;
+  html += `<line x1="${ML}" y1="${MT+innerH}" x2="${ML+innerW}" y2="${MT+innerH}" stroke="#2d3748" stroke-width="2"/>`;
+  html += `<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${MT+innerH}" stroke="#2d3748" stroke-width="2"/>`;
+  html += `<line x1="${xScale(Vmax)}" y1="${MT}" x2="${xScale(Vmax)}" y2="${MT+innerH}" stroke="#c8133a" stroke-width="2" stroke-dasharray="6,4" opacity="0.7"/>`;
+  html += `<text x="${xScale(Vmax)-6}" y="${MT+18}" font-size="14" fill="#c8133a" text-anchor="end" font-weight="700">Vmax = ${Vmax}</text>`;
+  html += `<path d="${path}" stroke="#0d2c4d" stroke-width="3.5" fill="none"/>`;
+  html += `<line x1="${cx}" y1="${MT+innerH}" x2="${cx}" y2="${cy}" stroke="#c8133a" stroke-width="2" stroke-dasharray="4,4"/>`;
+  html += `<line x1="${ML}" y1="${cy}" x2="${cx}" y2="${cy}" stroke="#c8133a" stroke-width="2" stroke-dasharray="4,4"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="10" fill="#c8133a" stroke="white" stroke-width="3"/>`;
+  const labelX = cx > W*0.65 ? cx-15 : cx+15;
+  const labelAnchor = cx > W*0.65 ? 'end' : 'start';
+  html += `<text x="${labelX}" y="${cy-12}" font-size="14" fill="#c8133a" font-weight="800" text-anchor="${labelAnchor}">${dose} mg → ${cssVal > 200 ? '>200' : cssVal.toFixed(1)} mg/L</text>`;
+
+  for (let d = 0; d <= 500; d += 100) {
+    const x = xScale(d);
+    html += `<line x1="${x}" y1="${MT+innerH}" x2="${x}" y2="${MT+innerH+5}" stroke="#2d3748" stroke-width="1.5"/>`;
+    html += `<text x="${x}" y="${MT+innerH+22}" font-size="12" fill="#4a5568" text-anchor="middle">${d}</text>`;
+  }
+  for (let c = 0; c <= 50; c += 10) {
+    const y = yScale(c);
+    html += `<line x1="${ML-5}" y1="${y}" x2="${ML}" y2="${y}" stroke="#2d3748" stroke-width="1.5"/>`;
+    html += `<text x="${ML-9}" y="${y+5}" font-size="12" fill="#4a5568" text-anchor="end">${c}</text>`;
+  }
+  html += `<text x="${ML+innerW/2}" y="${H-12}" font-size="15" fill="#0d2c4d" text-anchor="middle" font-weight="700">Daily dose of phenytoin (mg/day)</text>`;
+  html += `<text x="22" y="${MT+innerH/2}" font-size="15" fill="#0d2c4d" text-anchor="middle" font-weight="700" transform="rotate(-90 22 ${MT+innerH/2})">Steady-state Css (mg/L)</text>`;
+
+  document.getElementById('mainChart').innerHTML = html;
+}
+
+// --- GRAPH 2: M-M elimination ---
+function renderMMChart(dose) {
+  const maxC = 50;
+  const xScale = c => ML + (c / maxC) * innerW;
+  const yScale = r => MT + innerH - (r / Vmax) * innerH;
+  let path = '';
+  for (let c = 0; c <= maxC; c += 0.25) {
+    path += (path === '' ? 'M' : 'L') + xScale(c).toFixed(1) + ' ' + yScale(getElimRate(c)).toFixed(1);
+  }
+  const css = getCss(dose);
+  const cxC = Math.min(css, maxC);
+  const cx = xScale(cxC);
+  const cy = yScale(getElimRate(cxC));
+
+  let html = '';
+  const boundary = xScale(3 * Km);
+  html += `<rect x="${ML}" y="${MT}" width="${boundary-ML}" height="${innerH}" fill="#38a169" opacity="0.08"/>`;
+  html += `<rect x="${boundary}" y="${MT}" width="${ML+innerW-boundary}" height="${innerH}" fill="#c8133a" opacity="0.08"/>`;
+  html += `<text x="${(ML+boundary)/2}" y="${MT+innerH-14}" font-size="14" fill="#22543d" text-anchor="middle" font-weight="800">FIRST-ORDER</text>`;
+  html += `<text x="${(ML+boundary)/2}" y="${MT+innerH-32}" font-size="11" fill="#22543d" text-anchor="middle">(Rate ∝ [C])</text>`;
+  html += `<text x="${(boundary+ML+innerW)/2}" y="${MT+innerH-14}" font-size="14" fill="#742a2a" text-anchor="middle" font-weight="800">ZERO-ORDER</text>`;
+  html += `<text x="${(boundary+ML+innerW)/2}" y="${MT+innerH-32}" font-size="11" fill="#742a2a" text-anchor="middle">(Rate ≈ Vmax)</text>`;
+  html += `<line x1="${ML}" y1="${MT+innerH}" x2="${ML+innerW}" y2="${MT+innerH}" stroke="#2d3748" stroke-width="2"/>`;
+  html += `<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${MT+innerH}" stroke="#2d3748" stroke-width="2"/>`;
+  html += `<line x1="${ML}" y1="${MT}" x2="${ML+innerW}" y2="${MT}" stroke="#c8133a" stroke-width="2" stroke-dasharray="6,4" opacity="0.7"/>`;
+  html += `<text x="${ML+innerW-6}" y="${MT-6}" font-size="14" fill="#c8133a" text-anchor="end" font-weight="700">Vmax = ${Vmax} mg/day</text>`;
+  html += `<line x1="${xScale(Km)}" y1="${yScale(Vmax/2)}" x2="${xScale(Km)}" y2="${MT+innerH}" stroke="#0d2c4d" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>`;
+  html += `<line x1="${ML}" y1="${yScale(Vmax/2)}" x2="${xScale(Km)}" y2="${yScale(Vmax/2)}" stroke="#0d2c4d" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>`;
+  html += `<text x="${xScale(Km)+6}" y="${yScale(Vmax/2)-6}" font-size="13" fill="#0d2c4d" font-weight="700">Km = ${Km} mg/L</text>`;
+  html += `<path d="${path}" stroke="#0d2c4d" stroke-width="3.5" fill="none"/>`;
+  html += `<line x1="${cx}" y1="${MT+innerH}" x2="${cx}" y2="${cy}" stroke="#c8133a" stroke-width="2" stroke-dasharray="4,4"/>`;
+  html += `<line x1="${ML}" y1="${cy}" x2="${cx}" y2="${cy}" stroke="#c8133a" stroke-width="2" stroke-dasharray="4,4"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="10" fill="#c8133a" stroke="white" stroke-width="3"/>`;
+  const labelX = cx > W*0.65 ? cx-15 : cx+15;
+  const labelAnchor = cx > W*0.65 ? 'end' : 'start';
+  html += `<text x="${labelX}" y="${cy-12}" font-size="14" fill="#c8133a" font-weight="800" text-anchor="${labelAnchor}">Css ${css > 200 ? '>200' : css.toFixed(1)} mg/L</text>`;
+
+  for (let c = 0; c <= 50; c += 10) {
+    const x = xScale(c);
+    html += `<line x1="${x}" y1="${MT+innerH}" x2="${x}" y2="${MT+innerH+5}" stroke="#2d3748" stroke-width="1.5"/>`;
+    html += `<text x="${x}" y="${MT+innerH+22}" font-size="12" fill="#4a5568" text-anchor="middle">${c}</text>`;
+  }
+  for (let r = 0; r <= Vmax; r += 100) {
+    const y = yScale(r);
+    html += `<line x1="${ML-5}" y1="${y}" x2="${ML}" y2="${y}" stroke="#2d3748" stroke-width="1.5"/>`;
+    html += `<text x="${ML-9}" y="${y+5}" font-size="12" fill="#4a5568" text-anchor="end">${r}</text>`;
+  }
+  html += `<text x="${ML+innerW/2}" y="${H-12}" font-size="15" fill="#0d2c4d" text-anchor="middle" font-weight="700">Plasma concentration [C] (mg/L)</text>`;
+  html += `<text x="22" y="${MT+innerH/2}" font-size="15" fill="#0d2c4d" text-anchor="middle" font-weight="700" transform="rotate(-90 22 ${MT+innerH/2})">Rate of elimination (mg/day)</text>`;
+
+  document.getElementById('mainChart').innerHTML = html;
+}
+
+// --- GRAPH 3: Concentration vs Time ---
+function renderTimeChart(dose) {
+  const maxDays = 30, maxC = 50;
+  const xScale = t => ML + (t / maxDays) * innerW;
+  const yScale = c => MT + innerH - (Math.min(c, maxC) / maxC) * innerH;
+  const pts = simulate(dose, maxDays, 0.05);
+  let path = '';
+  pts.forEach((p, i) => {
+    path += (i === 0 ? 'M' : 'L') + xScale(p.t).toFixed(1) + ' ' + yScale(p.c).toFixed(1);
+  });
+  const yTherapHigh = yScale(THERAP_HIGH);
+  const yTherapLow  = yScale(THERAP_LOW);
+  const yToxic      = yScale(TOXIC);
+
+  let html = '';
+  html += `<rect x="${ML}" y="${yTherapHigh}" width="${innerW}" height="${yTherapLow-yTherapHigh}" fill="#38a169" opacity="0.15"/>`;
+  html += `<text x="${ML+innerW-6}" y="${(yTherapHigh+yTherapLow)/2+5}" font-size="13" fill="#22543d" text-anchor="end" font-weight="700">Therapeutic (10–20 mg/L)</text>`;
+  html += `<rect x="${ML}" y="${MT}" width="${innerW}" height="${yToxic-MT}" fill="#c8133a" opacity="0.1"/>`;
+  html += `<text x="${ML+innerW-6}" y="${MT+16}" font-size="13" fill="#742a2a" text-anchor="end" font-weight="700">Toxic (&gt; 30 mg/L)</text>`;
+  html += `<line x1="${ML}" y1="${MT+innerH}" x2="${ML+innerW}" y2="${MT+innerH}" stroke="#2d3748" stroke-width="2"/>`;
+  html += `<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${MT+innerH}" stroke="#2d3748" stroke-width="2"/>`;
+  const css = getCss(dose);
+  if (css <= maxC) {
+    html += `<line x1="${ML}" y1="${yScale(css)}" x2="${ML+innerW}" y2="${yScale(css)}" stroke="#0d2c4d" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>`;
+    html += `<text x="${ML+10}" y="${yScale(css)-6}" font-size="12" fill="#0d2c4d" font-weight="700">Target Css = ${css.toFixed(1)} mg/L</text>`;
+  }
+  html += `<path d="${path}" stroke="#0d2c4d" stroke-width="3.5" fill="none"/>`;
+  const finalP = pts[pts.length-1];
+  html += `<circle cx="${xScale(finalP.t)}" cy="${yScale(finalP.c)}" r="9" fill="#c8133a" stroke="white" stroke-width="3"/>`;
+  html += `<text x="${xScale(finalP.t)-10}" y="${yScale(finalP.c)-12}" font-size="13" fill="#c8133a" font-weight="800" text-anchor="end">Day 30: ${finalP.c.toFixed(1)} mg/L</text>`;
+
+  for (let d = 0; d <= 30; d += 5) {
+    const x = xScale(d);
+    html += `<line x1="${x}" y1="${MT+innerH}" x2="${x}" y2="${MT+innerH+5}" stroke="#2d3748" stroke-width="1.5"/>`;
+    html += `<text x="${x}" y="${MT+innerH+22}" font-size="12" fill="#4a5568" text-anchor="middle">${d}</text>`;
+  }
+  for (let c = 0; c <= 50; c += 10) {
+    const y = yScale(c);
+    html += `<line x1="${ML-5}" y1="${y}" x2="${ML}" y2="${y}" stroke="#2d3748" stroke-width="1.5"/>`;
+    html += `<text x="${ML-9}" y="${y+5}" font-size="12" fill="#4a5568" text-anchor="end">${c}</text>`;
+  }
+  html += `<text x="${ML+innerW/2}" y="${H-12}" font-size="15" fill="#0d2c4d" text-anchor="middle" font-weight="700">Time since start of dosing (days)</text>`;
+  html += `<text x="22" y="${MT+innerH/2}" font-size="15" fill="#0d2c4d" text-anchor="middle" font-weight="700" transform="rotate(-90 22 ${MT+innerH/2})">Plasma [C] (mg/L)</text>`;
+
+  document.getElementById('mainChart').innerHTML = html;
+}
+
+// --- Status banner ---
+function setStatus(css) {
+  const banner = document.getElementById('statusBanner');
+  let txt, cls;
+  if (css < 5)        { txt = '◐ Sub-therapeutic — risk of inadequate seizure control'; cls = 'status-subtherap'; }
+  else if (css < 10)  { txt = '◐ Low therapeutic — may need dose increase'; cls = 'status-subtherap'; }
+  else if (css <= 20) { txt = '◉ Therapeutic — typical adult maintenance dose'; cls = 'status-therap'; }
+  else if (css <= 30) { txt = '⚠ High therapeutic / approaching toxicity — TDM essential'; cls = 'status-borderline'; }
+  else if (css <= 50) { txt = '☠ TOXIC — nystagmus, ataxia, slurred speech, drowsiness'; cls = 'status-toxic'; }
+  else if (css <= 100){ txt = '☠ SEVERE TOXICITY — confusion, coma, cardiotoxicity'; cls = 'status-severe'; }
+  else                { txt = '☠ Vmax exceeded — drug accumulates indefinitely (LETHAL)'; cls = 'status-severe'; }
+  banner.textContent = txt;
+  banner.className = 'status-banner ' + cls;
+}
+
+// --- Compact implications ---
+function setImplications(css, halfLife) {
+  const list = document.getElementById('implicationsList');
+  const items = [];
+  if (css < 10) {
+    items.push(`<li><strong>Sub-therapeutic.</strong> Still in first-order zone — dose changes give proportional Css changes.</li>`);
+    items.push(`<li>Safe to increase dose in steps of <strong>100 mg</strong>.</li>`);
+    items.push(`<li>Half-life is short (~${halfLife.toFixed(0)} h); steady state reached quickly.</li>`);
+  } else if (css <= 20) {
+    items.push(`<li><strong>Therapeutic range</strong> but CYP enzymes already <strong>${(getSaturation(css)*100).toFixed(0)}% saturated</strong>.</li>`);
+    items.push(`<li>Increase dose in <strong>25–50 mg increments only</strong>.</li>`);
+    items.push(`<li>t½ now ~${halfLife.toFixed(0)} h. New steady state takes ~${(halfLife*3.3/24).toFixed(1)} days.</li>`);
+    items.push(`<li>Begin <strong>therapeutic drug monitoring (TDM)</strong>.</li>`);
+  } else if (css <= 30) {
+    items.push(`<li>⚠ <strong>Saturation kinetics dominate.</strong> Enzymes ${(getSaturation(css)*100).toFixed(0)}% saturated.</li>`);
+    items.push(`<li>Earliest toxicity sign: <strong>far-lateral nystagmus</strong> at &gt; 20 mg/L.</li>`);
+    items.push(`<li>t½ ~${halfLife.toFixed(0)} h; new steady state ~${(halfLife*3.3/24).toFixed(0)}+ days.</li>`);
+    items.push(`<li>CYP inhibitors (cimetidine, INH, fluconazole, valproate) can push Css toxic overnight.</li>`);
+  } else if (css <= 50) {
+    items.push(`<li>☠ <strong>Clinical toxicity expected.</strong> Nystagmus → ataxia → slurred speech → drowsiness.</li>`);
+    items.push(`<li><strong>Stop dose.</strong> Clearance very slow — t½ ~${halfLife.toFixed(0)} h.</li>`);
+    items.push(`<li>Watch for <strong>paradoxical seizures</strong>.</li>`);
+    items.push(`<li>Free phenytoin matters in hypoalbuminemia, uremia.</li>`);
+  } else {
+    items.push(`<li>☠ <strong>Severe toxicity.</strong> IV phenytoin cardiotoxic (bradyarrhythmia, hypotension).</li>`);
+    items.push(`<li>Dose &gt; 90% of Vmax — drug accumulates indefinitely.</li>`);
+    items.push(`<li>t½ approaches <strong>${halfLife.toFixed(0)} h</strong> — days to clear.</li>`);
+    items.push(`<li><strong>Take-home:</strong> 50 mg increase here = Css change &gt; 10× the same increase at 200 mg/day.</li>`);
+  }
+  list.innerHTML = items.join('');
+}
+
+function setCardStates(css) {
+  const cardCss = document.getElementById('cardCss');
+  cardCss.className = 'mini-card';
+  if (css > THERAP_HIGH && css <= TOXIC) cardCss.className += ' warn';
+  else if (css > TOXIC) cardCss.className += ' danger';
+}
+
+// ============================================================
+//  CHART SELECTION
+// ============================================================
+let currentChart = 1;
+
+const chartMeta = {
+  1: {
+    title: 'Dose → Steady-state Concentration (Css)',
+    tip: `<strong>Demo:</strong> Slide dose 350 → 400 → 450 mg. Same +50 mg increments, but Css jumps <span class="key">12 → 20 → 45 mg/L</span> — saturation kinetics made visible.`
+  },
+  2: {
+    title: 'Michaelis-Menten Elimination Curve',
+    tip: `<strong>Demo:</strong> Watch the red dot slide rightward as dose rises. From the steep <span class="key">green first-order zone</span> into the <span class="key">red zero-order plateau</span> — enzymes saturated, can't eliminate any faster.`
+  },
+  3: {
+    title: 'Plasma Concentration vs Time',
+    tip: `<strong>Demo:</strong> At 200 mg/d, steady state in ~4 days. At 450 mg/d, curve <span class="key">still climbing at day 30</span>. Why TDM must wait ≥2 weeks after any dose change.`
+  }
+};
+
+function updateChartDisplay() {
+  document.getElementById('chartNum').textContent = currentChart;
+  document.getElementById('chartTitleText').textContent = chartMeta[currentChart].title;
+  document.getElementById('tipStrip').innerHTML = chartMeta[currentChart].tip;
+  document.getElementById('chartSelect').value = currentChart;
+  document.getElementById('prevChart').disabled = (currentChart === 1);
+  document.getElementById('nextChart').disabled = (currentChart === 3);
+  redrawActiveChart();
+}
+
+function redrawActiveChart() {
+  const dose = parseInt(document.getElementById('doseSlider').value);
+  if      (currentChart === 1) renderDoseCssChart(dose);
+  else if (currentChart === 2) renderMMChart(dose);
+  else if (currentChart === 3) renderTimeChart(dose);
+}
+
+function update() {
+  const dose = parseInt(document.getElementById('doseSlider').value);
+  document.getElementById('doseValue').textContent = dose;
+  const css = getCss(dose);
+  const halfLife = getHalfLife(css);
+  const sat = getSaturation(css);
+  document.getElementById('cssValue').textContent = css > 200 ? '>200' : css.toFixed(1);
+  document.getElementById('halfLifeValue').textContent = halfLife > 500 ? '>500' : halfLife.toFixed(0);
+  document.getElementById('satValue').textContent = (sat * 100).toFixed(0);
+  const tss = timeTo90pct(dose);
+  document.getElementById('tssValue').textContent = tss >= 30 ? '>30' : tss.toFixed(1);
+  redrawActiveChart();
+  setStatus(css);
+  setImplications(css, halfLife);
+  setCardStates(css);
+}
+
+document.getElementById('doseSlider').addEventListener('input', update);
+document.getElementById('chartSelect').addEventListener('change', (e) => {
+  currentChart = parseInt(e.target.value);
+  updateChartDisplay();
+});
+document.getElementById('prevChart').addEventListener('click', () => {
+  if (currentChart > 1) { currentChart--; updateChartDisplay(); }
+});
+document.getElementById('nextChart').addEventListener('click', () => {
+  if (currentChart < 3) { currentChart++; updateChartDisplay(); }
+});
+
+updateChartDisplay();
+update();
+</script>
+
+</body>
+</html>

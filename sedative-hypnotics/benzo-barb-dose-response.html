@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dose Response: Benzodiazepines vs Barbiturates</title>
+  <style>
+    :root {
+      --ink: #16202c;
+      --muted: #5d6878;
+      --line: #d7dee8;
+      --panel: #ffffff;
+      --benzo: #2f6fdd;
+      --barb: #c05a16;
+      --danger: #cc2f2f;
+      --safe: #1ca673;
+      --shadow: 0 18px 48px rgba(24, 39, 58, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(47, 111, 221, 0.14), transparent 30%),
+        radial-gradient(circle at 82% 12%, rgba(192, 90, 22, 0.12), transparent 26%),
+        linear-gradient(180deg, #eef5fb 0%, #f8fbff 52%, #eef3f8 100%);
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 3.3vw, 3.2rem);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 820px;
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.45;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.86);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .controls,
+    .board,
+    .explain {
+      background: rgba(255, 255, 255, 0.93);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: none;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid #c5cfdd;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    button:hover,
+    button:focus-visible {
+      border-color: #788da9;
+      outline: none;
+    }
+
+    button.primary {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .slider {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-left: auto;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    input[type="range"] {
+      width: 150px;
+      accent-color: var(--benzo);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+      gap: 16px;
+    }
+
+    .board {
+      min-height: 650px;
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 560px;
+      border-radius: 8px;
+      border: 1px solid #dbe3ed;
+      background:
+        linear-gradient(90deg, rgba(22, 32, 44, 0.05) 1px, transparent 1px) 0 0 / 58px 58px,
+        linear-gradient(180deg, rgba(22, 32, 44, 0.05) 1px, transparent 1px) 0 0 / 58px 58px,
+        #fbfdff;
+    }
+
+    .danger-zone {
+      position: absolute;
+      left: 72px;
+      right: 34px;
+      top: 26px;
+      height: 96px;
+      border: 2px dashed rgba(204, 47, 47, 0.5);
+      border-radius: 8px;
+      color: var(--danger);
+      font-weight: 900;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .axis-y,
+    .axis-x {
+      position: absolute;
+      background: #2d3846;
+      border-radius: 999px;
+    }
+
+    .axis-y {
+      left: 70px;
+      top: 42px;
+      bottom: 76px;
+      width: 4px;
+    }
+
+    .axis-x {
+      left: 70px;
+      right: 42px;
+      bottom: 76px;
+      height: 4px;
+    }
+
+    .axis-label {
+      position: absolute;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 0.9rem;
+    }
+
+    .axis-label.y {
+      left: 14px;
+      top: 54px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+
+    .axis-label.x {
+      right: 42px;
+      bottom: 24px;
+    }
+
+    .dose-arrow {
+      position: absolute;
+      right: 30px;
+      bottom: 66px;
+      width: 0;
+      height: 0;
+      border-left: 13px solid #2d3846;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+    }
+
+    .effect-arrow {
+      position: absolute;
+      left: 62px;
+      top: 30px;
+      width: 0;
+      height: 0;
+      border-bottom: 13px solid #2d3846;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+    }
+
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .curve {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      filter: drop-shadow(0 6px 8px rgba(20, 35, 54, 0.16));
+    }
+
+    .benzo-curve {
+      stroke: var(--benzo);
+    }
+
+    .barb-curve {
+      stroke: var(--barb);
+    }
+
+    .curve-label {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-weight: 900;
+      box-shadow: 0 10px 22px rgba(24, 39, 58, 0.12);
+    }
+
+    .curve-label::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .curve-label.benzo {
+      color: var(--benzo);
+      left: 56%;
+      top: 270px;
+    }
+
+    .curve-label.barb {
+      color: var(--barb);
+      right: 34px;
+      top: 88px;
+    }
+
+    .marker {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 34px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 900;
+      border: 3px solid #fff;
+      box-shadow: 0 10px 20px rgba(20, 35, 54, 0.24);
+      left: var(--x);
+      top: var(--y);
+      transform: translate(-50%, -50%);
+      transition: left 360ms linear, top 360ms linear;
+      z-index: 4;
+    }
+
+    .marker.benzo {
+      background: var(--benzo);
+    }
+
+    .marker.barb {
+      background: var(--barb);
+    }
+
+    .marker.benzo.stopped {
+      animation: ceiling-pulse 1.4s ease-in-out infinite;
+      box-shadow: 0 0 0 0 rgba(47, 111, 221, 0.6), 0 10px 20px rgba(20, 35, 54, 0.24);
+    }
+
+    @keyframes ceiling-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(47, 111, 221, 0.55), 0 10px 20px rgba(20, 35, 54, 0.24);
+      }
+      50% {
+        box-shadow: 0 0 0 14px rgba(47, 111, 221, 0), 0 10px 20px rgba(20, 35, 54, 0.24);
+      }
+    }
+
+    .y-stage {
+      position: absolute;
+      left: 84px;
+      transform: translateY(-50%);
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--muted);
+      border-radius: 6px;
+      color: var(--ink);
+      font-size: 0.82rem;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: background 220ms ease, color 220ms ease, border-color 220ms ease, transform 220ms ease;
+      z-index: 2;
+    }
+
+    .y-stage::before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px var(--line);
+    }
+
+    .y-stage.active-benzo {
+      color: var(--benzo);
+      border-color: var(--benzo);
+      border-left-color: var(--benzo);
+      background: rgba(47, 111, 221, 0.10);
+      transform: translateY(-50%) translateX(4px);
+    }
+
+    .y-stage.active-benzo::before {
+      background: var(--benzo);
+    }
+
+    .y-stage.active-barb {
+      color: var(--barb);
+      border-color: var(--barb);
+      border-left-color: var(--barb);
+      background: rgba(192, 90, 22, 0.10);
+    }
+
+    .y-stage.active-barb::before {
+      background: var(--barb);
+    }
+
+    .y-stage.danger.active-barb {
+      color: var(--danger);
+      border-color: var(--danger);
+      border-left-color: var(--danger);
+      background: rgba(204, 47, 47, 0.12);
+    }
+
+    .y-stage.danger.active-barb::before {
+      background: var(--danger);
+    }
+
+    /* When BOTH active, BZD blue takes priority for the small overlap region (up to muscle relaxation) */
+    .y-stage.active-benzo.active-barb {
+      color: var(--benzo);
+      border-color: var(--benzo);
+      border-left-color: var(--benzo);
+      background: linear-gradient(90deg, rgba(47,111,221,0.12), rgba(192,90,22,0.10));
+    }
+
+    .ceiling-band {
+      position: absolute;
+      left: 56%;
+      right: 76px;
+      top: 248px;
+      pointer-events: none;
+    }
+
+    .ceiling-band span {
+      position: absolute;
+      right: 0;
+      top: 0;
+      color: var(--benzo);
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(47, 111, 221, 0.35);
+      font-size: 0.82rem;
+    }
+
+    .explain {
+      padding: 18px;
+    }
+
+    .explain h2 {
+      margin: 0 0 8px;
+      font-size: 1.32rem;
+    }
+
+    .explain p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .keypoint {
+      border-left: 5px solid var(--benzo);
+      background: #f5f8fc;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .keypoint.barb {
+      border-left-color: var(--barb);
+    }
+
+    .keypoint.danger {
+      border-left-color: var(--danger);
+    }
+
+    .keypoint strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .summary {
+      grid-column: 1 / -1;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    body.paused *,
+    body.paused *::before,
+    body.paused *::after {
+      animation-play-state: paused !important;
+    }
+
+    @media (max-width: 940px) {
+      header,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .badge {
+        width: max-content;
+      }
+
+      .slider {
+        margin-left: 0;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 20px, 1180px);
+      }
+
+      .board {
+        min-height: 610px;
+        padding: 10px;
+      }
+
+      .chart-wrap {
+        height: 570px;
+      }
+
+      .axis-label.y {
+        left: 2px;
+      }
+
+      .axis-y,
+      .axis-x {
+        left: 48px;
+      }
+
+      .effect-arrow {
+        left: 40px;
+      }
+
+      .danger-zone {
+        left: 50px;
+        right: 14px;
+      }
+
+      .curve-label {
+        font-size: 0.75rem;
+      }
+
+      .curve-label.benzo {
+        left: 48%;
+      }
+
+      .stage-list {
+        left: 54px;
+        right: 12px;
+        grid-template-columns: repeat(3, 1fr);
+        bottom: 86px;
+      }
+
+      .stage {
+        min-height: 44px;
+        font-size: 0.72rem;
+      }
+
+      button {
+        flex: 1 1 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Dose-Response: Benzodiazepines vs Barbiturates</h1>
+        <p class="subtitle">Animated comparison of ceiling effect and non-ceiling CNS depression, designed for pharmacology teaching.</p>
+      </div>
+      <div class="badge">High-yield safety concept</div>
+    </header>
+
+    <section class="controls" aria-label="Animation controls">
+      <button class="primary" id="play" type="button">Play</button>
+      <button id="pause" type="button">Pause</button>
+      <button id="reset" type="button">Reset</button>
+      <label class="slider">
+        Speed
+        <input id="speed" type="range" min="0.6" max="1.8" value="1" step="0.1">
+      </label>
+    </section>
+
+    <div class="layout">
+      <section class="board" aria-label="Animated dose response graph">
+        <div class="chart-wrap">
+          <div class="axis-y"></div>
+          <div class="axis-x"></div>
+          <div class="effect-arrow"></div>
+          <div class="dose-arrow"></div>
+          <div class="axis-label y">Drug Response (CNS depression) &#8593;</div>
+          <div class="axis-label x">Increasing Dose &#8594;</div>
+
+          <svg viewBox="0 0 900 560" aria-hidden="true" preserveAspectRatio="none">
+            <!-- BZD curve: rises through antianxiety -> sedation -> hypnosis -> muscle relaxation, then STOPS -->
+            <!-- Endpoint y=263 corresponds to ~47% (muscle relaxation level on Y-axis) -->
+            <path class="curve benzo-curve" d="M108 482 C180 430, 250 380, 320 340 C380 305, 430 278, 504 263"></path>
+            <!-- Visual end-cap on BZD curve to emphasize the ceiling stop -->
+            <circle cx="504" cy="263" r="11" fill="#2f6fdd" stroke="#fff" stroke-width="3"></circle>
+            <!-- Dashed ceiling line extending from BZD endpoint (matches reference image style) -->
+            <line x1="504" y1="263" x2="850" y2="263" stroke="#2f6fdd" stroke-width="3" stroke-dasharray="8 6" opacity="0.55"></line>
+            <!-- Barbiturate curve: continues all the way through anesthesia -> coma -> death -->
+            <!-- Endpoint y=22 corresponds to ~4% (death level on Y-axis) -->
+            <path class="curve barb-curve" d="M108 482 C200 440, 290 380, 380 320 C500 240, 620 140, 828 22"></path>
+          </svg>
+
+          <div class="ceiling-band"><span>BZD ceiling — response stops here</span></div>
+          <div class="curve-label benzo">Benzodiazepines</div>
+          <div class="curve-label barb">Barbiturates</div>
+
+          <div class="marker benzo" id="benzoMarker">BZD</div>
+          <div class="marker barb" id="barbMarker">BARB</div>
+
+          <!-- Y-axis response level labels (placed at the height each response occurs) -->
+          <div class="y-stage" data-stage="0" style="top: 86%;">antianxiety</div>
+          <div class="y-stage" data-stage="1" style="top: 73%;">sedation</div>
+          <div class="y-stage" data-stage="2" style="top: 60%;">hypnosis</div>
+          <div class="y-stage" data-stage="3" style="top: 53%;">anticonvulsant</div>
+          <div class="y-stage" data-stage="4" style="top: 47%;">muscle relaxation</div>
+          <div class="y-stage" data-stage="5" style="top: 34%;">general anesthesia</div>
+          <div class="y-stage danger" data-stage="6" style="top: 21%;">medullary depression</div>
+          <div class="y-stage danger" data-stage="7" style="top: 12%;">coma</div>
+          <div class="y-stage danger" data-stage="8" style="top: 4%;">death</div>
+        </div>
+      </section>
+
+      <aside class="explain" aria-live="polite">
+        <h2 id="lessonTitle">Start with low dose</h2>
+        <p id="lessonText">As dose increases, both groups depress CNS activity through GABA-A facilitation. The important teaching point is what happens at higher doses.</p>
+
+        <div class="keypoint">
+          <strong>Benzodiazepines</strong>
+          <span>Flatter curve: effect plateaus because they need endogenous GABA and mainly increase channel opening frequency.</span>
+        </div>
+
+        <div class="keypoint barb">
+          <strong>Barbiturates</strong>
+          <span>Steeper curve: CNS depression keeps rising; at high doses they can directly activate GABA-A channels.</span>
+        </div>
+
+        <div class="keypoint danger">
+          <strong>Exam line</strong>
+          <span>Barbiturates have no protective ceiling, so dose escalation can progress to fatal respiratory and CNS depression.</span>
+        </div>
+      </aside>
+
+      <div class="summary">
+        Teaching script: “Both enhance GABA-A inhibition, but benzodiazepines show a ceiling effect when used alone. Barbiturates continue down the CNS depression pathway: sedation, hypnosis, anesthesia, coma, death.”
+
+      </div>
+      <div class="summary">
+      
+        Dr. Manu Kumar Shetty, Department of Pharmacology, MAMC, New Delhi
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const benzoMarker = document.getElementById("benzoMarker");
+    const barbMarker = document.getElementById("barbMarker");
+    const stages = Array.from(document.querySelectorAll(".y-stage"));
+    const lessonTitle = document.getElementById("lessonTitle");
+    const lessonText = document.getElementById("lessonText");
+    const speed = document.getElementById("speed");
+    const play = document.getElementById("play");
+    const pause = document.getElementById("pause");
+    const reset = document.getElementById("reset");
+
+    // Y positions match the top:% of each y-stage label so markers land ON each response level.
+    // Levels: 0=antianxiety(86%) 1=sedation(73%) 2=hypnosis(60%) 3=anticonvulsant(53%)
+    //         4=muscle relaxation(47%) 5=general anesthesia(34%) 6=medullary depression(21%)
+    //         7=coma(12%) 8=death(4%)
+    // BZD CEILING is at level 4 (muscle relaxation).
+
+    const frames = [
+      {
+        benzo: [12, 86], barb: [12, 86], stage: 0, benzoStopped: false,
+        title: "Low dose: antianxiety effect",
+        text: "At the lowest doses both drugs cause mild CNS depression. BZDs are commonly used here for anxiolysis without sedation."
+      },
+      {
+        benzo: [22, 73], barb: [22, 73], stage: 1, benzoStopped: false,
+        title: "Dose ↑ → sedation",
+        text: "As the dose rises, both curves climb the Y-axis. The patient becomes calm and drowsy (sedation)."
+      },
+      {
+        benzo: [32, 60], barb: [32, 60], stage: 2, benzoStopped: false,
+        title: "Dose ↑↑ → hypnosis",
+        text: "Cl⁻ mediated hyperpolarization deepens. The patient transitions from sedation into sleep (hypnosis)."
+      },
+      {
+        benzo: [38, 53], barb: [38, 53], stage: 3, benzoStopped: false,
+        title: "Dose ↑↑ → anticonvulsant action",
+        text: "Both classes raise the seizure threshold by enhancing GABA-A mediated Cl⁻ influx. Clinical use: IV diazepam, lorazepam, midazolam for status epilepticus; phenobarbital for chronic seizure control (and neonatal seizures); thiopental for refractory status epilepticus."
+      },
+      {
+        benzo: [44, 47], barb: [44, 47], stage: 4, benzoStopped: false,
+        title: "Muscle relaxation — BZD reaches ceiling",
+        text: "Both reach muscle relaxation. BZDs cannot go higher: they only enhance endogenous GABA (frequency of channel opening). The blue curve STOPS here."
+      },
+      {
+        benzo: [44, 47], barb: [56, 34], stage: 5, benzoStopped: true,
+        title: "Dose ↑↑↑ → general anesthesia (barbiturates only)",
+        text: "BZD marker is frozen at its ceiling. Barbiturates keep climbing because at high doses they directly open GABA-A channels — even without GABA — producing surgical anesthesia."
+      },
+      {
+        benzo: [44, 47], barb: [70, 21], stage: 6, benzoStopped: true,
+        title: "Higher dose → medullary depression",
+        text: "Barbiturates depress the medullary respiratory and vasomotor centres. BZDs alone cannot reach this depth — this is the protective ceiling of BZDs."
+      },
+      {
+        benzo: [44, 47], barb: [82, 12], stage: 7, benzoStopped: true,
+        title: "Toxic dose → coma",
+        text: "Barbiturate overdose progresses to deep coma. There is no equivalent stage on the BZD curve — it has already terminated at muscle relaxation."
+      },
+      {
+        benzo: [44, 47], barb: [92, 4], stage: 8, benzoStopped: true,
+        title: "Lethal dose → death",
+        text: "Barbiturates have NO ceiling — overdose is fatal due to respiratory failure. Exam line: BZDs are far safer in overdose because of the ceiling at muscle relaxation."
+      }
+    ];
+
+    let frameIndex = 0;
+    let timer = null;
+    let playing = false;
+
+    function setMarker(marker, coords) {
+      marker.style.setProperty("--x", `${coords[0]}%`);
+      marker.style.setProperty("--y", `${coords[1]}%`);
+    }
+
+    function renderFrame() {
+      const frame = frames[frameIndex];
+      setMarker(benzoMarker, frame.benzo);
+      setMarker(barbMarker, frame.barb);
+      lessonTitle.textContent = frame.title;
+      lessonText.textContent = frame.text;
+
+      // Visually mark the BZD as stopped (ceiling reached)
+      if (frame.benzoStopped) {
+        benzoMarker.classList.add("stopped");
+        benzoMarker.textContent = "BZD ✕";
+      } else {
+        benzoMarker.classList.remove("stopped");
+        benzoMarker.textContent = "BZD";
+      }
+
+      // BZD highlights light up only up to muscle relaxation (index 4) — that is its ceiling
+      // Barbiturate highlights light up through whatever the current stage is
+      stages.forEach((stage) => {
+        const index = Number(stage.dataset.stage);
+        stage.classList.toggle("active-benzo", index <= Math.min(frame.stage, 4));
+        stage.classList.toggle("active-barb", index <= frame.stage);
+      });
+    }
+
+    function step() {
+      if (!playing) return;
+      frameIndex = (frameIndex + 1) % frames.length;
+      renderFrame();
+      timer = setTimeout(step, 1300 / Number(speed.value));
+    }
+
+    function start() {
+      clearTimeout(timer);
+      playing = true;
+      document.body.classList.remove("paused");
+      timer = setTimeout(step, 650 / Number(speed.value));
+    }
+
+    function stop() {
+      playing = false;
+      clearTimeout(timer);
+      document.body.classList.add("paused");
+    }
+
+    function restart() {
+      stop();
+      frameIndex = 0;
+      renderFrame();
+    }
+
+    play.addEventListener("click", start);
+    pause.addEventListener("click", stop);
+    reset.addEventListener("click", restart);
+    speed.addEventListener("input", () => {
+      if (playing) start();
+    });
+
+    renderFrame();
+  </script>
+</body>
+</html>

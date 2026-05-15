@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sodium Channel Blockers — Mechanism of Action | MAMC Pharmacology</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f4f6fa;
+    color: #1a2332;
+    padding: 6px 14px 4px;
+    min-height: 100vh;
+  }
+  header {
+    text-align: center;
+    padding: 2px 0 6px;
+    border-bottom: 2px solid #c8133a;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: 20px;
+    color: #0d2c4d;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: inline-block;
+  }
+  .subtitle {
+    font-size: 12px;
+    color: #4a5568;
+    margin-top: 1px;
+    display: inline-block;
+  }
+  .badge {
+    display: inline-block;
+    background: #c8133a;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 290px;
+    gap: 10px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 8px rgba(13, 44, 77, 0.06);
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0d2c4d;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    background: #c8133a;
+    border-radius: 2px;
+  }
+
+  /* Animation canvas */
+  .animation-stage {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(180deg, #e8f1fc 0%, #c5d9f0 45%, #d4ad7d 50%, #b8935f 55%, #d4ad7d 60%, #c5d9f0 65%, #e8f1fc 100%);
+    border-radius: 8px;
+    overflow: hidden;
+    padding-bottom: 10px;
+  }
+
+  svg.membrane-svg { width: 100%; height: 250px; display: block; }
+
+  .ap-graph {
+    margin-top: 8px;
+    background: #0d2c4d;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .ap-graph-title {
+    color: #fff;
+    font-size: 12px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .firing-stat {
+    background: #c8133a;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 8px;
+  }
+  button {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: #0d2c4d; color: white; }
+  .btn-primary:hover { background: #1a3d66; }
+  .btn-drug { background: #c8133a; color: white; }
+  .btn-drug.active { background: #28a745; }
+  .btn-secondary { background: #e2e8f0; color: #1a2332; }
+  .btn-secondary:hover { background: #cbd5e0; }
+
+  .speed-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: 11px;
+    color: #4a5568;
+  }
+  .speed-control input[type="range"] {
+    width: 80px;
+  }
+
+  /* Right panel cards */
+  .state-legend {
+    display: grid;
+    gap: 5px;
+  }
+  .state-card {
+    padding: 5px 8px;
+    border-radius: 5px;
+    border-left: 3px solid;
+    background: #f7fafc;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .state-card.resting { border-color: #38a169; }
+  .state-card.open { border-color: #d69e2e; }
+  .state-card.inactivated { border-color: #805ad5; }
+  .state-card.drug { border-color: #c8133a; }
+  .state-card strong { display: block; font-size: 11px; margin-bottom: 1px; }
+  .state-card.resting strong { color: #2f855a; }
+  .state-card.open strong { color: #b7791f; }
+  .state-card.inactivated strong { color: #553c9a; }
+  .state-card.drug strong { color: #c8133a; }
+
+  .drug-list {
+    list-style: none;
+    margin-top: 4px;
+  }
+  .drug-list li {
+    padding: 3px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .drug-list li:last-child { border-bottom: none; }
+  .drug-list li strong { color: #c8133a; }
+
+  .key-point {
+    background: #fff8e1;
+    border: 1px solid #f6cf6e;
+    padding: 6px 8px;
+    border-radius: 5px;
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .key-point strong { color: #b7791f; display: block; margin-bottom: 2px; }
+
+  /* State indicators above channels */
+  .state-label {
+    font-size: 14px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+  .timing-label {
+    font-size: 11px;
+    fill: #4a5568;
+    text-anchor: middle;
+  }
+
+  /* Channel comparison side-by-side */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .comparison-panel {
+    background: #f7fafc;
+    border-radius: 5px;
+    padding: 5px 7px;
+    border-top: 3px solid;
+  }
+  .comparison-panel.normal { border-color: #38a169; }
+  .comparison-panel.drug { border-color: #c8133a; }
+  .comparison-panel h4 {
+    font-size: 11px;
+    margin-bottom: 2px;
+    color: #0d2c4d;
+  }
+  .comparison-panel .freq {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 1px 0;
+    line-height: 1;
+  }
+  .comparison-panel.normal .freq { color: #c8133a; }
+  .comparison-panel.drug .freq { color: #38a169; }
+  .comparison-panel small { color: #718096; font-size: 9px; line-height: 1.2; display: block; }
+
+  footer {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 10px;
+    color: #718096;
+  }
+
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sodium Channel Blockers: Mechanism of Action <span class="badge">Anti-Epileptic Drugs</span></h1>
+  <span class="subtitle"> · Dept. of Pharmacology, MAMC · 2nd Year MBBS</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Main animation + AP graph -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">Neuronal Membrane — Voltage-Gated Na⁺ Channels</div>
+
+      <!-- Big phase banner showing the synchronized state -->
+      <div id="phaseBanner" style="
+        text-align: center;
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid #2f855a;
+        background: #f0fdf4;
+        color: #2f855a;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+      ">◉ RESTING — channels closed but available</div>
+
+      <div class="animation-stage">
+        <svg class="membrane-svg" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg">
+          <!-- Extracellular label -->
+          <text x="20" y="30" font-size="14" font-weight="700" fill="#0d2c4d">EXTRACELLULAR (high Na⁺)</text>
+          <text x="20" y="345" font-size="14" font-weight="700" fill="#0d2c4d">INTRACELLULAR (low Na⁺)</text>
+
+          <!-- Membrane bilayer top -->
+          <g id="bilayer-top"></g>
+          <!-- Membrane bilayer bottom -->
+          <g id="bilayer-bottom"></g>
+
+          <!-- Three channels -->
+          <g id="channel-1" transform="translate(180, 0)"></g>
+          <g id="channel-2" transform="translate(440, 0)"></g>
+          <g id="channel-3" transform="translate(700, 0)"></g>
+
+          <!-- Na+ ions floating in extracellular space -->
+          <g id="extracellular-ions"></g>
+        </svg>
+      </div>
+
+      <div class="controls">
+        <button class="btn-primary" id="playBtn">⏸ Pause</button>
+        <button class="btn-secondary" id="stepBtn">▸ Step</button>
+        <button class="btn-secondary" id="modeBtn">🐢 Slow (Teaching)</button>
+        <button class="btn-drug" id="drugBtn">💊 Add Phenytoin / Carbamazepine</button>
+        <div class="speed-control">
+          Speed:
+          <input type="range" id="speedSlider" min="0.25" max="2" step="0.25" value="1">
+          <span id="speedLabel">1.0×</span>
+        </div>
+      </div>
+
+      <!-- Action potential graph -->
+      <div class="ap-graph">
+        <div class="ap-graph-title">
+          <span>Action Potential Trace — synchronised with channel state ↑</span>
+          <span class="firing-stat" id="firingStat">Firing in sync with channel</span>
+        </div>
+        <svg id="apSvg" viewBox="0 0 860 160" style="width:100%; height:115px;">
+          <!-- gridlines -->
+          <g id="ap-grid"></g>
+          <!-- threshold line -->
+          <line x1="0" y1="115" x2="860" y2="115" stroke="#f6ad55" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="6" y="112" font-size="10" fill="#f6ad55">Threshold (–55 mV)</text>
+          <!-- resting -->
+          <line x1="0" y1="140" x2="860" y2="140" stroke="#63b3ed" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="6" y="138" font-size="10" fill="#63b3ed">Resting (–70 mV)</text>
+          <!-- axis labels -->
+          <text x="6" y="20" font-size="11" fill="#cbd5e0">+30 mV</text>
+          <text x="800" y="155" font-size="10" fill="#cbd5e0">time →</text>
+          <!-- AP trace -->
+          <path id="apTrace" d="" stroke="#48bb78" stroke-width="2.5" fill="none"/>
+          <!-- moving cursor -->
+          <line id="apCursor" x1="0" y1="0" x2="0" y2="160" stroke="#c8133a" stroke-width="2" opacity="0.7"/>
+        </svg>
+      </div>
+
+      <!-- Side-by-side comparison stats -->
+      <div class="comparison-grid">
+        <div class="comparison-panel normal">
+          <h4>WITHOUT Drug</h4>
+          <div class="freq" id="normalFreq">1 AP / cycle</div>
+          <small>Every channel-open phase → full AP (Na⁺ entry depolarises to peak)</small>
+        </div>
+        <div class="comparison-panel drug">
+          <h4>WITH Na⁺ Channel Blocker</h4>
+          <div class="freq" id="drugFreq">~1 in 4</div>
+          <small>Most cycles subthreshold (no AP); occasional breakthrough — use-dependent block</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Legends & teaching notes -->
+  <aside>
+    <div class="panel">
+      <div class="panel-title">Three States of Na⁺ Channel</div>
+      <div class="state-legend">
+        <div class="state-card resting">
+          <strong>1. RESTING (Closed but available)</strong>
+          m-gate (activation gate) CLOSED · h-gate (inactivation gate) OPEN. Channel is <em>capable of opening</em> if depolarized.
+        </div>
+        <div class="state-card open">
+          <strong>2. OPEN (Activated) — ~1 ms</strong>
+          Depolarization → m-gate opens. Na⁺ rushes in down its gradient. Rising phase of action potential.
+        </div>
+        <div class="state-card inactivated">
+          <strong>3. INACTIVATED (Closed, unavailable)</strong>
+          h-gate ("ball &amp; chain") swings shut. Channel <em>cannot reopen</em> regardless of voltage. This is the <strong>absolute refractory period</strong>.
+        </div>
+        <div class="state-card drug">
+          <strong>+ DRUG BOUND (Use-dependent block)</strong>
+          Phenytoin / Carbamazepine bind with <strong>high affinity to the INACTIVATED state</strong>. The drug stabilises this state → recovery is delayed → channel stays unavailable longer.
+        </div>
+      </div>
+
+      <div class="key-point">
+        <strong>Why "use-dependent"?</strong>
+        Drugs bind preferentially when channels are repeatedly opening &amp; inactivating (as in a seizure focus). Normal neurons firing at low frequency are largely spared — this is why these drugs suppress seizures without abolishing normal CNS activity.
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:8px;">
+      <div class="panel-title">Clinically Important Drugs</div>
+      <ul class="drug-list">
+        <li><strong>Phenytoin</strong> — partial &amp; GTC seizures; status epilepticus (IV)</li>
+        <li><strong>Carbamazepine</strong> — partial seizures (DOC); trigeminal neuralgia</li>
+        <li><strong>Oxcarbazepine</strong> — better-tolerated CBZ analogue</li>
+        <li><strong>Lamotrigine</strong> — broad spectrum; also absence &amp; LGS</li>
+        <li><strong>Lacosamide</strong> — enhances <em>slow</em> inactivation</li>
+        <li><strong>Zonisamide, Topiramate</strong> — multiple mechanisms incl. Na⁺ block</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="margin-top:8px;">
+      <div class="panel-title">Now Showing</div>
+      <div id="currentState" style="font-size:11px; line-height:1.4;">
+        <strong style="color:#0d2c4d;">Channels cycling normally</strong>
+        Each channel: Resting → Open → Inactivated → Resting<br>
+        <em>Click <span style="color:#c8133a; font-weight:700;">"Add Phenytoin/Carbamazepine"</span> to see drug action.</em>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  Designed for lecture projection · Dr. Manu Kumar Shetty · Department of Pharmacology, MAMC &amp; LNH, New Delhi
+</footer>
+
+<script>
+// ============================================================
+//  SODIUM CHANNEL BLOCKER ANIMATION
+//  States: 0 = Resting, 1 = Open, 2 = Inactivated, 3 = Drug-bound
+// ============================================================
+
+const STATE = { RESTING: 0, OPEN: 1, INACTIVATED: 2, DRUG_BOUND: 3 };
+
+// Membrane geometry
+const MEMBRANE_TOP = 145;
+const MEMBRANE_BOTTOM = 215;
+const MEMBRANE_MID = (MEMBRANE_TOP + MEMBRANE_BOTTOM) / 2;
+
+// Build phospholipid bilayer (two rows of heads with tails)
+function buildBilayer() {
+  const top = document.getElementById('bilayer-top');
+  const bot = document.getElementById('bilayer-bottom');
+  let topHTML = '', botHTML = '';
+  for (let x = 10; x < 900; x += 14) {
+    // Skip where channels are (around 180, 440, 700, each ~80 wide)
+    const skip = (x > 165 && x < 245) || (x > 425 && x < 505) || (x > 685 && x < 765);
+    if (skip) continue;
+    // Top heads
+    topHTML += `<circle cx="${x}" cy="${MEMBRANE_TOP}" r="6" fill="#e8a87c" stroke="#a86332" stroke-width="1"/>`;
+    topHTML += `<line x1="${x-2}" y1="${MEMBRANE_TOP+5}" x2="${x-2}" y2="${MEMBRANE_MID}" stroke="#a86332" stroke-width="1.2"/>`;
+    topHTML += `<line x1="${x+2}" y1="${MEMBRANE_TOP+5}" x2="${x+2}" y2="${MEMBRANE_MID}" stroke="#a86332" stroke-width="1.2"/>`;
+    // Bottom heads
+    botHTML += `<circle cx="${x}" cy="${MEMBRANE_BOTTOM}" r="6" fill="#e8a87c" stroke="#a86332" stroke-width="1"/>`;
+    botHTML += `<line x1="${x-2}" y1="${MEMBRANE_BOTTOM-5}" x2="${x-2}" y2="${MEMBRANE_MID}" stroke="#a86332" stroke-width="1.2"/>`;
+    botHTML += `<line x1="${x+2}" y1="${MEMBRANE_BOTTOM-5}" x2="${x+2}" y2="${MEMBRANE_MID}" stroke="#a86332" stroke-width="1.2"/>`;
+  }
+  top.innerHTML = topHTML;
+  bot.innerHTML = botHTML;
+}
+
+// Build a single channel at given offset group
+// Channel geometry (relative): pore vertical from 130 to 230
+//   m-gate (activation): top of pore, ~150
+//   h-gate (inactivation): "ball and chain", inside cell, ~205
+function renderChannel(groupEl, state, ionPositions, drugPos) {
+  // state: 0..3
+  // Walls of channel (alpha subunit cross-section)
+  const cx = 40; // center x within the group
+  const wallLeft = cx - 26;
+  const wallRight = cx + 26;
+  const poreLeft = cx - 12;
+  const poreRight = cx + 12;
+
+  let html = '';
+
+  // Channel protein body — outer walls (always)
+  html += `<path d="M ${wallLeft} 130
+                   Q ${wallLeft-6} 175, ${wallLeft} 230
+                   L ${poreLeft} 230
+                   L ${poreLeft} 130 Z"
+                   fill="#6b8cae" stroke="#2c4a6e" stroke-width="2"/>`;
+  html += `<path d="M ${wallRight} 130
+                   Q ${wallRight+6} 175, ${wallRight} 230
+                   L ${poreRight} 230
+                   L ${poreRight} 130 Z"
+                   fill="#6b8cae" stroke="#2c4a6e" stroke-width="2"/>`;
+
+  // m-gate (activation gate) - at top of pore
+  // Open in states OPEN, INACTIVATED, DRUG_BOUND. Closed in RESTING.
+  const mOpen = (state === STATE.OPEN || state === STATE.INACTIVATED || state === STATE.DRUG_BOUND);
+  if (!mOpen) {
+    // m-gate closed: two flaps meeting in middle at top
+    html += `<path d="M ${poreLeft} 135 L ${cx} 145 L ${poreRight} 135 Z" fill="#4a6b8a" stroke="#1a2f4a" stroke-width="1.5"/>`;
+    html += `<text x="${cx}" y="120" font-size="9" font-weight="700" fill="#1a2f4a" text-anchor="middle">m-gate (closed)</text>`;
+  } else {
+    // m-gate open: flaps pulled aside
+    html += `<path d="M ${poreLeft} 135 L ${poreLeft-5} 128 L ${poreLeft-3} 145 Z" fill="#4a6b8a" stroke="#1a2f4a" stroke-width="1.2"/>`;
+    html += `<path d="M ${poreRight} 135 L ${poreRight+5} 128 L ${poreRight+3} 145 Z" fill="#4a6b8a" stroke="#1a2f4a" stroke-width="1.2"/>`;
+    html += `<text x="${cx}" y="120" font-size="9" font-weight="700" fill="#b7791f" text-anchor="middle">m-gate (open)</text>`;
+  }
+
+  // h-gate ("ball and chain") - at intracellular side
+  // Open (dangling) in RESTING and OPEN. Closed (in pore) in INACTIVATED and DRUG_BOUND.
+  const hClosed = (state === STATE.INACTIVATED || state === STATE.DRUG_BOUND);
+  if (hClosed) {
+    // h-gate ball blocking pore from inside
+    html += `<path d="M ${poreRight+2} 218 Q ${cx+8} 215, ${cx} 200" stroke="#553c9a" stroke-width="2" fill="none"/>`;
+    html += `<circle cx="${cx}" cy="195" r="9" fill="#805ad5" stroke="#3b1f70" stroke-width="1.5"/>`;
+    html += `<text x="${cx}" y="248" font-size="9" font-weight="700" fill="#553c9a" text-anchor="middle">h-gate (closed)</text>`;
+  } else {
+    // h-gate ball dangling, pore is open from inside
+    html += `<path d="M ${poreRight+2} 215 Q ${poreRight+10} 235, ${poreRight+18} 250" stroke="#805ad5" stroke-width="2" fill="none"/>`;
+    html += `<circle cx="${poreRight+20}" cy="253" r="7" fill="#b794f4" stroke="#553c9a" stroke-width="1.2"/>`;
+    html += `<text x="${cx}" y="280" font-size="9" font-weight="700" fill="#2f855a" text-anchor="middle">h-gate (open)</text>`;
+  }
+
+  // Drug molecule binding inside channel (if drug-bound state)
+  if (state === STATE.DRUG_BOUND) {
+    // Drug sits in the inner pore vestibule, on top of the closed h-gate
+    html += `<g>`;
+    html += `<rect x="${cx-10}" y="170" width="20" height="14" rx="3" fill="#f6cf6e" stroke="#b7791f" stroke-width="2"/>`;
+    html += `<text x="${cx}" y="180" font-size="9" font-weight="800" fill="#7c4a00" text-anchor="middle">DRUG</text>`;
+    html += `</g>`;
+  }
+
+  // Ions flowing through (only in OPEN state)
+  if (state === STATE.OPEN && ionPositions) {
+    ionPositions.forEach(p => {
+      html += `<circle cx="${cx}" cy="${p}" r="6" fill="#3182ce" stroke="#1a365d" stroke-width="1.5"/>`;
+      html += `<text x="${cx}" y="${p+3}" font-size="9" font-weight="800" fill="white" text-anchor="middle">Na</text>`;
+    });
+    // direction arrow
+    html += `<text x="${cx+30}" y="180" font-size="14" fill="#c8133a" font-weight="700">↓</text>`;
+  }
+
+  // State label below channel
+  const stateLabels = {
+    [STATE.RESTING]: { text: 'RESTING', color: '#2f855a' },
+    [STATE.OPEN]: { text: 'OPEN', color: '#b7791f' },
+    [STATE.INACTIVATED]: { text: 'INACTIVATED', color: '#553c9a' },
+    [STATE.DRUG_BOUND]: { text: 'INACTIVATED + DRUG', color: '#c8133a' }
+  };
+  const lbl = stateLabels[state];
+  html += `<rect x="${cx-55}" y="295" width="110" height="22" rx="11" fill="white" stroke="${lbl.color}" stroke-width="2"/>`;
+  html += `<text x="${cx}" y="310" font-size="12" font-weight="800" fill="${lbl.color}" text-anchor="middle">${lbl.text}</text>`;
+
+  groupEl.innerHTML = html;
+}
+
+// Channel cycle definition — ALL CHANNELS SYNCHRONIZED IN SAME PHASE
+// (this is what actually happens during an action potential — all channels
+//  in the same membrane patch see the same voltage and respond together)
+//
+// Two timing presets:
+//   TEACHING  → slow (each state clearly visible) — ~0.4 Hz
+//   CLINICAL  → 10× faster (looks like a real seizure-focus firing train)
+const CYCLE_TEACHING = {
+  RESTING_DUR: 1400,   // wait at resting (long: emphasizes "available, waiting")
+  OPEN_DUR: 350,       // brief open phase (Na+ rushes in)
+  INACT_DUR: 900       // inactivation / refractory period
+};
+const CYCLE_CLINICAL = {
+  RESTING_DUR: 140,
+  OPEN_DUR: 35,
+  INACT_DUR: 90
+};
+let CYCLE = CYCLE_TEACHING;
+let clinicalMode = false;
+
+// ONE global state machine — all functional channels share this state
+let globalState = STATE.RESTING;
+let timeInState = 0;
+let cycleCount = 0;   // increments each time a full RESTING→OPEN→INACT cycle completes
+
+const channelEls = [
+  document.getElementById('channel-1'),
+  document.getElementById('channel-2'),
+  document.getElementById('channel-3')
+];
+
+let drugActive = false;
+let playing = true;
+let speedFactor = 1.0;
+let lastTimestamp = null;
+let simTime = 0; // ms
+
+function stepGlobal(dt) {
+  timeInState += dt;
+  switch (globalState) {
+    case STATE.RESTING:
+      if (timeInState >= CYCLE.RESTING_DUR) {
+        globalState = STATE.OPEN;
+        timeInState = 0;
+      }
+      break;
+    case STATE.OPEN:
+      if (timeInState >= CYCLE.OPEN_DUR) {
+        globalState = STATE.INACTIVATED;
+        timeInState = 0;
+      }
+      break;
+    case STATE.INACTIVATED:
+      if (timeInState >= CYCLE.INACT_DUR) {
+        globalState = STATE.RESTING;
+        timeInState = 0;
+        cycleCount++;
+      }
+      break;
+  }
+}
+
+// Determine what each channel shows:
+//   Channel 0 (first)     → ALWAYS follows the global cycle (functional)
+//   Channels 1 & 2        → follow global cycle if drug is OFF;
+//                            stuck in DRUG_BOUND if drug is ON.
+function getChannelState(idx) {
+  if (drugActive && idx > 0) return STATE.DRUG_BOUND;
+  return globalState;
+}
+
+function renderAllChannels() {
+  for (let i = 0; i < 3; i++) {
+    const state = getChannelState(i);
+    let ions = null;
+    if (state === STATE.OPEN) {
+      const t = timeInState / CYCLE.OPEN_DUR;
+      ions = [
+        130 + ((t * 200) % 100),
+        130 + ((t * 200 + 40) % 100),
+        130 + ((t * 200 + 70) % 100)
+      ];
+    }
+    renderChannel(channelEls[i], state, ions, null);
+  }
+}
+
+// Action potential trace — SYNCHRONIZED with channel state
+// The membrane voltage is derived directly from globalState + timeInState,
+// not from a fixed clock. So:
+//   RESTING     → flat baseline (no firing — channels closed, no Na+ entry)
+//   OPEN        → upstroke to peak (Na+ rushes in → depolarization)
+//   INACTIVATED → repolarisation → undershoot → recovery to baseline
+// This is the physiological reality: the AP IS the channel cycle.
+const AP_WINDOW = 4000; // 4 seconds shown
+let apHistory = []; // array of {t, v}
+
+function computeAPVoltage() {
+  const baseline = -70;   // resting membrane potential (mV)
+  const peak     = 30;    // AP peak (mV)
+  const undershoot = -80; // afterhyperpolarisation (mV)
+
+  // Drug mode: 2 of 3 channels stuck in inactivated state → Na+ current reduced.
+  // Most depolarisations remain SUBTHRESHOLD (no AP).
+  // Roughly 1 in 4 cycles a breakthrough AP still occurs (clinically: drugs
+  // suppress but do not abolish neuronal firing).
+  const isBreakthrough = drugActive && (cycleCount % 4 === 0);
+  const isReduced      = drugActive && !isBreakthrough;
+  const targetPeak     = isReduced ? -35 : peak;   // subthreshold bump if reduced
+
+  switch (globalState) {
+    case STATE.RESTING:
+      return baseline;
+
+    case STATE.OPEN: {
+      // Na+ rushing in → membrane depolarises from baseline up to targetPeak
+      const t = timeInState / CYCLE.OPEN_DUR;
+      return baseline + (targetPeak - baseline) * t;
+    }
+
+    case STATE.INACTIVATED: {
+      const t = timeInState / CYCLE.INACT_DUR;
+      if (isReduced) {
+        // Subthreshold response: simply decays back to baseline (no undershoot)
+        return targetPeak + (baseline - targetPeak) * Math.min(1, t * 2);
+      }
+      // Full AP: rapid repolarisation → undershoot → recovery
+      if (t < 0.35) {
+        return targetPeak - (targetPeak - undershoot) * (t / 0.35);
+      } else if (t < 0.70) {
+        return undershoot + (baseline - undershoot) * ((t - 0.35) / 0.35);
+      } else {
+        return baseline;
+      }
+    }
+  }
+  return baseline;
+}
+
+function updateAPGraph(t) {
+  apHistory.push({ t: t, v: computeAPVoltage() });
+  // Keep only last AP_WINDOW ms
+  apHistory = apHistory.filter(p => p.t > t - AP_WINDOW);
+  // Build path
+  const trace = document.getElementById('apTrace');
+  if (apHistory.length < 2) return;
+  const t0 = apHistory[0].t;
+  // Map voltage -90..+40 → y 150..10
+  const vToY = v => 150 - ((v + 90) / 130) * 140;
+  // Map time → x 0..860
+  const tToX = tt => ((tt - t0) / AP_WINDOW) * 860;
+  let d = `M ${tToX(apHistory[0].t)} ${vToY(apHistory[0].v)}`;
+  for (let i = 1; i < apHistory.length; i++) {
+    d += ` L ${tToX(apHistory[i].t)} ${vToY(apHistory[i].v)}`;
+  }
+  trace.setAttribute('d', d);
+
+  // Update stats
+  document.getElementById('firingStat').textContent = drugActive ? 'Firing suppressed' : 'Firing in sync with channel';
+  document.getElementById('firingStat').style.background = drugActive ? '#38a169' : '#c8133a';
+}
+
+// Floating extracellular Na+ ions for ambiance
+const extraIons = [];
+function initExtraIons() {
+  for (let i = 0; i < 15; i++) {
+    extraIons.push({
+      x: 30 + Math.random() * 840,
+      y: 30 + Math.random() * 90,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.2
+    });
+  }
+}
+function renderExtraIons() {
+  const g = document.getElementById('extracellular-ions');
+  let html = '';
+  extraIons.forEach(ion => {
+    ion.x += ion.vx * speedFactor;
+    ion.y += ion.vy * speedFactor;
+    if (ion.x < 10 || ion.x > 890) ion.vx *= -1;
+    if (ion.y < 20 || ion.y > 120) ion.vy *= -1;
+    html += `<circle cx="${ion.x}" cy="${ion.y}" r="5" fill="#3182ce" opacity="0.6"/>`;
+    html += `<text x="${ion.x}" y="${ion.y+3}" font-size="7" font-weight="700" fill="white" text-anchor="middle" opacity="0.9">Na</text>`;
+  });
+  g.innerHTML = html;
+}
+
+// Main animation loop
+function loop(ts) {
+  if (!lastTimestamp) lastTimestamp = ts;
+  const dtReal = ts - lastTimestamp;
+  lastTimestamp = ts;
+  if (playing) {
+    const dt = dtReal * speedFactor;
+    simTime += dt;
+    stepGlobal(dt);
+    renderAllChannels();
+    updateAPGraph(simTime);
+    renderExtraIons();
+    document.getElementById('apCursor').setAttribute('x1', 858);
+    document.getElementById('apCursor').setAttribute('x2', 858);
+    updateCurrentStateText();
+    updatePhaseBanner();
+  }
+  requestAnimationFrame(loop);
+}
+
+function updatePhaseBanner() {
+  const banner = document.getElementById('phaseBanner');
+  if (!banner) return;
+  const labels = {
+    [STATE.RESTING]: { text: '◉ RESTING — channels closed but available', color: '#2f855a', bg: '#f0fdf4' },
+    [STATE.OPEN]: { text: '⚡ OPEN — Na⁺ rushing in (depolarization)', color: '#b7791f', bg: '#fffbeb' },
+    [STATE.INACTIVATED]: { text: '⏸ INACTIVATED — refractory period (h-gate closed)', color: '#553c9a', bg: '#faf5ff' }
+  };
+  const lbl = labels[globalState];
+  banner.textContent = lbl.text;
+  banner.style.color = lbl.color;
+  banner.style.background = lbl.bg;
+  banner.style.borderColor = lbl.color;
+}
+
+function updateCurrentStateText() {
+  const el = document.getElementById('currentState');
+  if (drugActive) {
+    el.innerHTML = `
+      <strong style="color:#c8133a;">💊 Use-dependent Na⁺ channel block</strong>
+      Channels <strong>2 &amp; 3</strong> are drug-bound → stuck inactivated.<br>
+      Only <strong>channel 1</strong> still cycles → Na⁺ current reduced to ⅓.<br>
+      <strong>AP trace:</strong> most depolarisations stay <em>subthreshold</em> (small bumps, no firing). Occasional breakthrough AP every ~4 cycles.<br>
+      <em style="color:#553c9a;">Clinical: this is exactly how phenytoin / carbamazepine suppress seizure firing without abolishing normal CNS activity.</em>
+    `;
+  } else {
+    el.innerHTML = `
+      <strong style="color:#0d2c4d;">AP is driven by channel state</strong>
+      Watch the trace ↓ — it moves <em>only</em> when channels open:<br>
+      <span style="color:#2f855a;">Resting</span> = flat baseline (no Na⁺ entry)<br>
+      <span style="color:#b7791f;">Open</span> = upstroke (Na⁺ rushing in)<br>
+      <span style="color:#553c9a;">Inactivated</span> = repolarisation + undershoot<br>
+    `;
+  }
+}
+
+// Controls
+document.getElementById('playBtn').addEventListener('click', (e) => {
+  playing = !playing;
+  e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+});
+
+document.getElementById('drugBtn').addEventListener('click', (e) => {
+  drugActive = !drugActive;
+  e.target.classList.toggle('active');
+  e.target.textContent = drugActive ? '💊 Remove Drug' : '💊 Add Phenytoin / Carbamazepine';
+});
+
+document.getElementById('modeBtn').addEventListener('click', (e) => {
+  clinicalMode = !clinicalMode;
+  CYCLE = clinicalMode ? CYCLE_CLINICAL : CYCLE_TEACHING;
+  e.target.textContent = clinicalMode ? '🐇 Fast (Clinical 10×)' : '🐢 Slow (Teaching)';
+  // Reset cycle position and trace so the new timing starts cleanly
+  globalState = STATE.RESTING;
+  timeInState = 0;
+  cycleCount = 0;
+  apHistory = [];
+});
+
+document.getElementById('stepBtn').addEventListener('click', () => {
+  // Advance the global state machine to the next phase
+  if (globalState === STATE.RESTING) globalState = STATE.OPEN;
+  else if (globalState === STATE.OPEN) globalState = STATE.INACTIVATED;
+  else if (globalState === STATE.INACTIVATED) globalState = STATE.RESTING;
+  timeInState = 0;
+  renderAllChannels();
+  updatePhaseBanner();
+});
+
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+  speedFactor = parseFloat(e.target.value);
+  document.getElementById('speedLabel').textContent = speedFactor.toFixed(2) + '×';
+});
+
+// Initialise
+buildBilayer();
+initExtraIons();
+renderAllChannels();
+requestAnimationFrame(loop);
+
+</script>
+
+</body>
+</html>

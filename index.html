@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNS Pharmacology Animations | MAMC</title>
+  <meta name="description" content="Open-access interactive animations for teaching CNS Pharmacology to MBBS and MD students. Department of Pharmacology, Maulana Azad Medical College, New Delhi.">
+  <style>
+    :root {
+      --ink: #16202c;
+      --muted: #5d6878;
+      --line: #d7dee8;
+      --panel: #ffffff;
+      --accent: #2f6fdd;
+      --accent-2: #1ca673;
+      --accent-3: #c05a16;
+      --accent-4: #7b3fbf;
+      --shadow: 0 18px 48px rgba(24, 39, 58, 0.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(47, 111, 221, 0.14), transparent 30%),
+        radial-gradient(circle at 82% 12%, rgba(28, 166, 115, 0.10), transparent 26%),
+        linear-gradient(180deg, #eef5fb 0%, #f8fbff 52%, #eef3f8 100%);
+    }
+    main {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 48px;
+    }
+    header { margin-bottom: 28px; }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -0.01em;
+    }
+    .lede {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 760px;
+      line-height: 1.55;
+    }
+    .meta {
+      margin-top: 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .meta a { color: var(--accent); text-decoration: none; }
+    .meta a:hover { text-decoration: underline; }
+
+    h2 {
+      margin: 36px 0 14px;
+      font-size: 22px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 56px rgba(24, 39, 58, 0.18);
+    }
+    .card h3 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 3px 10px;
+      border-radius: 999px;
+      width: fit-content;
+    }
+    .tag-mech { background: rgba(47, 111, 221, 0.12); color: var(--accent); }
+    .tag-dose { background: rgba(192, 90, 22, 0.12); color: var(--accent-3); }
+    .tag-pk   { background: rgba(123, 63, 191, 0.12); color: var(--accent-4); }
+    .tag-physio { background: rgba(28, 166, 115, 0.14); color: var(--accent-2); }
+    .tag-soon {
+      background: rgba(93, 104, 120, 0.10);
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .soon {
+      background: transparent;
+      border: 1px dashed var(--line);
+      box-shadow: none;
+      cursor: default;
+    }
+    .soon:hover { transform: none; box-shadow: none; }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>CNS Pharmacology Animations</h1>
+      <p class="lede">
+        Open-access, browser-based animations for teaching CNS Pharmacology to MBBS and MD Pharmacology students. Each animation is a single self-contained HTML file — no installation, works offline, projector-friendly.
+      </p>
+      <div class="meta">
+        Department of Pharmacology, Maulana Azad Medical College &amp; Lok Nayak Hospital, New Delhi
+        &nbsp;·&nbsp;
+        <a href="https://github.com/ManuHCI/cns-pharmacology-animations">View source on GitHub</a>
+      </div>
+    </header>
+
+    <h2>Sedative–Hypnotics</h2>
+    <div class="grid">
+      <a class="card" href="sedative-hypnotics/benzo-barb-gaba-mechanism.html">
+        <span class="tag tag-mech">Mechanism</span>
+        <h3>Benzodiazepines vs Barbiturates: GABA-A Mechanism</h3>
+        <p>Frequency vs duration of chloride channel opening — why benzodiazepines have a ceiling but barbiturates do not.</p>
+      </a>
+      <a class="card" href="sedative-hypnotics/benzo-barb-dose-response.html">
+        <span class="tag tag-dose">Dose–response</span>
+        <h3>Benzodiazepines vs Barbiturates: Dose–Response</h3>
+        <p>Side-by-side dose–response curves illustrating the clinical safety difference between the two drug classes.</p>
+      </a>
+    </div>
+
+    <h2>General Anaesthesia</h2>
+    <div class="grid">
+      <a class="card" href="general-anesthesia/n2o-second-gas-effect.html">
+        <span class="tag tag-mech">Mechanism</span>
+        <h3>Nitrous Oxide: Second Gas Effect</h3>
+        <p>How rapid N₂O uptake concentrates and accelerates the alveolar rise of a co-administered volatile anaesthetic.</p>
+      </a>
+      <a class="card" href="general-anesthesia/n2o-diffusion-hypoxia.html">
+        <span class="tag tag-physio">Clinical</span>
+        <h3>Nitrous Oxide: Diffusion Hypoxia</h3>
+        <p>Why N₂O washout at the end of anaesthesia can dilute alveolar oxygen — and why 100% O₂ is given on emergence.</p>
+      </a>
+    </div>
+
+    <h2>Antiepileptic Drugs</h2>
+    <div class="grid">
+      <a class="card" href="epilepsy/gaba-glutamate-balance.html">
+        <span class="tag tag-physio">Physiology</span>
+        <h3>GABA–Glutamate Balance in Epilepsy</h3>
+        <p>The inhibitory–excitatory equilibrium and how seizures emerge when the balance is lost.</p>
+      </a>
+      <a class="card" href="epilepsy/sodium-channel-blockers.html">
+        <span class="tag tag-mech">Mechanism</span>
+        <h3>Sodium Channel Blockers</h3>
+        <p>Use-dependent block of voltage-gated Na⁺ channels — the shared mechanism of phenytoin, carbamazepine, lamotrigine.</p>
+      </a>
+      <a class="card" href="epilepsy/phenytoin-saturation-kinetics.html">
+        <span class="tag tag-pk">Pharmacokinetics</span>
+        <h3>Phenytoin: Saturation Kinetics</h3>
+        <p>Zero-order vs first-order elimination and the clinical implications of a non-linear dose–concentration curve.</p>
+      </a>
+    </div>
+
+    <h2>More chapters coming</h2>
+    <div class="grid">
+      <div class="card soon">
+        <span class="tag tag-soon">Planned</span>
+        <h3>Opioid analgesics</h3>
+        <p>Receptor pharmacology and clinical effects.</p>
+      </div>
+      <div class="card soon">
+        <span class="tag tag-soon">Planned</span>
+        <h3>Antipsychotics &amp; antidepressants</h3>
+        <p>Receptor-level visualisations.</p>
+      </div>
+    </div>
+
+    <footer>
+      <p>
+        <strong>Author:</strong> Dr. Manu Kumar Shetty, Professor of Pharmacology, MAMC &amp; LNH, New Delhi ·
+        <a href="https://orcid.org/0000-0002-9767-5092">ORCID</a> ·
+        <a href="https://github.com/ManuHCI">GitHub</a>
+      </p>
+      <p>
+        Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. You are free to share and adapt with attribution.
+      </p>
+      <p>
+        Suggested citation: Shetty, M. K. (2026). <em>CNS Pharmacology Animations</em>. Department of Pharmacology, Maulana Azad Medical College, New Delhi. https://github.com/ManuHCI/cns-pharmacology-animations
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nitrous Oxide — Second Gas Effect | MAMC Pharmacology</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f4f6fa;
+    color: #1a2332;
+    padding: 6px 14px 4px;
+    min-height: 100vh;
+  }
+  header {
+    text-align: center;
+    padding: 2px 0 6px;
+    border-bottom: 2px solid #2b6cb0;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: 20px;
+    color: #0d2c4d;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: inline-block;
+  }
+  .subtitle {
+    font-size: 12px;
+    color: #4a5568;
+    margin-top: 1px;
+    display: inline-block;
+  }
+  .badge {
+    display: inline-block;
+    background: #2b6cb0;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 290px;
+    gap: 10px;
+  }
+  .panel {
+    background: white;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 8px rgba(13, 44, 77, 0.06);
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0d2c4d;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    background: #2b6cb0;
+    border-radius: 2px;
+  }
+
+  /* Animation canvas */
+  .animation-stage {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(180deg, #e6f2ff 0%, #cfe4f7 35%, #f8d5cc 50%, #f0a6a6 70%, #e07b8a 100%);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  svg.alveolus-svg { width: 100%; height: 250px; display: block; }
+
+  .conc-graph {
+    margin-top: 8px;
+    background: #0d2c4d;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .conc-graph-title {
+    color: #fff;
+    font-size: 12px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .effect-stat {
+    background: #d69e2e;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 8px;
+  }
+  button {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: #0d2c4d; color: white; }
+  .btn-primary:hover { background: #1a3d66; }
+  .btn-toggle { background: #2b6cb0; color: white; }
+  .btn-toggle.active { background: #c8133a; }
+  .btn-secondary { background: #e2e8f0; color: #1a2332; }
+  .btn-secondary:hover { background: #cbd5e0; }
+  .speed-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: 11px;
+    color: #4a5568;
+  }
+  .speed-control input[type="range"] { width: 80px; }
+
+  /* Right panel cards */
+  .mech-card {
+    padding: 6px 9px;
+    border-radius: 5px;
+    border-left: 3px solid;
+    background: #f7fafc;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 5px;
+  }
+  .mech-card.conc { border-color: #d69e2e; }
+  .mech-card.aug  { border-color: #2b6cb0; }
+  .mech-card.result { border-color: #38a169; }
+  .mech-card strong { display: block; font-size: 11px; margin-bottom: 1px; }
+  .mech-card.conc strong { color: #b7791f; }
+  .mech-card.aug strong  { color: #2c5282; }
+  .mech-card.result strong { color: #2f855a; }
+
+  .key-point {
+    background: #fff8e1;
+    border: 1px solid #f6cf6e;
+    padding: 6px 8px;
+    border-radius: 5px;
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .key-point strong { color: #b7791f; display: block; margin-bottom: 2px; }
+
+  .drug-list {
+    list-style: none;
+    margin-top: 4px;
+  }
+  .drug-list li {
+    padding: 3px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .drug-list li:last-child { border-bottom: none; }
+  .drug-list li strong { color: #2b6cb0; }
+
+  /* Comparison stats */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .comparison-panel {
+    background: #f7fafc;
+    border-radius: 5px;
+    padding: 5px 7px;
+    border-top: 3px solid;
+  }
+  .comparison-panel.alone { border-color: #718096; }
+  .comparison-panel.withN { border-color: #38a169; }
+  .comparison-panel h4 { font-size: 11px; margin-bottom: 2px; color: #0d2c4d; }
+  .comparison-panel .freq {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 1px 0;
+    line-height: 1;
+  }
+  .comparison-panel.alone .freq { color: #718096; }
+  .comparison-panel.withN .freq { color: #38a169; }
+  .comparison-panel small { color: #718096; font-size: 9px; line-height: 1.2; display: block; }
+
+  footer {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 10px;
+    color: #718096;
+  }
+
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nitrous Oxide — The Second Gas Effect <span class="badge">Inhalational Anaesthetics</span></h1>
+  <span class="subtitle"> · Dept. of Pharmacology, MAMC · 2nd Year MBBS</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Animation + graph -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">Alveolus &amp; Pulmonary Capillary — Gas Exchange</div>
+
+      <!-- Phase banner -->
+      <div id="phaseBanner" style="
+        text-align: center;
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid #2b6cb0;
+        background: #ebf4fc;
+        color: #2c5282;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+      ">① INSPIRATION — fresh gas mixture entering alveolus</div>
+
+      <div class="animation-stage">
+        <svg class="alveolus-svg" viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Labels -->
+          <text x="20" y="20" font-size="13" font-weight="700" fill="#0d2c4d">AIRWAY (Fresh gas inflow)</text>
+          <text x="20" y="270" font-size="13" font-weight="700" fill="#7a1a2a">PULMONARY CAPILLARY (blood → heart)</text>
+
+          <!-- Bronchiole opening at top center -->
+          <path id="bronchiole" d="M 380 10 L 380 70 L 460 70 L 520 70 L 520 10 Z"
+                fill="#cae8ff" stroke="#2c5282" stroke-width="2" opacity="0.7"/>
+          <text x="450" y="42" font-size="11" font-weight="700" fill="#2c5282" text-anchor="middle">Bronchiole</text>
+
+          <!-- Inflow arrow (animated visibility) -->
+          <g id="inflowArrow" opacity="0">
+            <path d="M 450 75 L 450 105" stroke="#c8133a" stroke-width="3" marker-end="url(#arrHead)"/>
+            <text x="475" y="95" font-size="11" font-weight="700" fill="#c8133a">inflow</text>
+          </g>
+          <defs>
+            <marker id="arrHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#c8133a"/>
+            </marker>
+            <marker id="arrHeadBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#2b6cb0"/>
+            </marker>
+          </defs>
+
+          <!-- Alveolus body (oval that can "shrink" by changing transform) -->
+          <g id="alveolusGroup">
+            <ellipse id="alveolusBody" cx="450" cy="155" rx="340" ry="80"
+                     fill="rgba(255,255,255,0.55)" stroke="#a86332" stroke-width="2.5"
+                     stroke-dasharray="0"/>
+            <text x="450" y="100" font-size="12" font-weight="700" fill="#7a1a2a" text-anchor="middle" opacity="0.85">ALVEOLAR SPACE</text>
+          </g>
+
+          <!-- Alveolar-capillary membrane (between alveolus and capillary) -->
+          <line x1="60" y1="225" x2="840" y2="225" stroke="#a86332" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
+          <text x="60" y="222" font-size="9" fill="#a86332" opacity="0.8">alveolar-capillary membrane</text>
+
+          <!-- Capillary lumen -->
+          <rect x="20" y="232" width="860" height="28" fill="rgba(232,55,78,0.15)" stroke="#7a1a2a" stroke-width="1.5"/>
+
+          <!-- Gas molecules: N2O (blue) and Second Gas (orange) -->
+          <g id="n2oMolecules"></g>
+          <g id="secondGasMolecules"></g>
+
+          <!-- RBCs flowing in capillary -->
+          <g id="rbcLayer"></g>
+
+          <!-- Direction arrow in capillary -->
+          <text x="855" y="252" font-size="14" font-weight="700" fill="#7a1a2a" text-anchor="end">→</text>
+        </svg>
+      </div>
+
+      <div class="controls">
+        <button class="btn-primary" id="playBtn">⏸ Pause</button>
+        <button class="btn-secondary" id="stepBtn">▸ Step</button>
+        <button class="btn-secondary" id="modeBtn">🐢 Slow (Teaching)</button>
+        <button class="btn-toggle" id="n2oBtn">💨 N₂O ON (70%)</button>
+        <div class="speed-control">
+          Speed:
+          <input type="range" id="speedSlider" min="0.25" max="2" step="0.25" value="1">
+          <span id="speedLabel">1.0×</span>
+        </div>
+      </div>
+
+      <!-- Concentration graph -->
+      <div class="conc-graph">
+        <div class="conc-graph-title">
+          <span>F<tspan style="font-size:9px;">A</tspan>/F<tspan style="font-size:9px;">I</tspan> of Second Gas (Sevoflurane) — alveolar vs inspired ratio</span>
+          <span class="effect-stat" id="effectStat">N₂O accelerates uptake ↑</span>
+        </div>
+        <svg id="graphSvg" viewBox="0 0 860 160" style="width:100%; height:115px;">
+          <!-- gridlines -->
+          <g id="graph-grid">
+            <line x1="0" y1="20" x2="860" y2="20" stroke="#1e3a5f" stroke-width="0.5" opacity="0.4"/>
+            <line x1="0" y1="55" x2="860" y2="55" stroke="#1e3a5f" stroke-width="0.5" opacity="0.4"/>
+            <line x1="0" y1="90" x2="860" y2="90" stroke="#1e3a5f" stroke-width="0.5" opacity="0.4"/>
+            <line x1="0" y1="125" x2="860" y2="125" stroke="#1e3a5f" stroke-width="0.5" opacity="0.4"/>
+          </g>
+          <!-- y-axis labels -->
+          <text x="6" y="22" font-size="10" fill="#cbd5e0">1.0</text>
+          <text x="6" y="57" font-size="10" fill="#cbd5e0">0.75</text>
+          <text x="6" y="92" font-size="10" fill="#cbd5e0">0.5</text>
+          <text x="6" y="127" font-size="10" fill="#cbd5e0">0.25</text>
+          <text x="6" y="148" font-size="10" fill="#cbd5e0">0</text>
+          <text x="820" y="155" font-size="10" fill="#cbd5e0">time →</text>
+
+          <!-- Reference curve: WITHOUT N2O (drawn first, behind) -->
+          <path id="curveAlone" d="" stroke="#a0aec0" stroke-width="2" stroke-dasharray="6,4" fill="none"/>
+          <text x="700" y="105" font-size="10" fill="#a0aec0">Sevo alone (slow rise)</text>
+
+          <!-- Live curve: WITH N2O (accelerated) -->
+          <path id="curveWithN2O" d="" stroke="#48bb78" stroke-width="2.8" fill="none"/>
+          <text x="700" y="40" font-size="10" fill="#48bb78">Sevo + N₂O ↑↑ faster</text>
+
+          <!-- Moving cursor showing current sim time -->
+          <line id="graphCursor" x1="0" y1="10" x2="0" y2="150" stroke="#f6cf6e" stroke-width="2" opacity="0.8"/>
+          <circle id="cursorDotAlone" cx="0" cy="150" r="4" fill="#a0aec0"/>
+          <circle id="cursorDotWith" cx="0" cy="150" r="5" fill="#48bb78" stroke="white" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <!-- Comparison stats -->
+      <div class="comparison-grid">
+        <div class="comparison-panel alone">
+          <h4>Sevoflurane ALONE</h4>
+          <div class="freq" id="aloneRate">slow</div>
+          <small>Limited by blood solubility (λ ≈ 0.65) — gradual alveolar build-up</small>
+        </div>
+        <div class="comparison-panel withN">
+          <h4>Sevoflurane + 70% N₂O</h4>
+          <div class="freq" id="withRate">faster</div>
+          <small>N₂O bulk uptake → concentrating + augmented inflow → second gas effect</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Teaching content -->
+  <aside>
+    <div class="panel">
+      <div class="panel-title">Two Mechanisms — Second Gas Effect</div>
+
+      <div class="mech-card conc">
+        <strong>① Concentrating Effect</strong>
+        N₂O is given in <strong>high concentration (70%)</strong>. Because of its <em>low blood:gas solubility</em> (λ = 0.47), enormous volumes are <strong>rapidly absorbed</strong> into pulmonary blood. Alveolar volume contracts → remaining gases (including second gas) become <strong>more concentrated</strong> per unit volume.
+      </div>
+
+      <div class="mech-card aug">
+        <strong>② Augmented Inflow Effect</strong>
+        Volume contraction creates <em>negative alveolar pressure</em> → extra fresh gas is <strong>drawn in from the airway</strong>. This inflow contains BOTH N₂O and the second gas → more second gas molecules arrive per breath.
+      </div>
+
+      <div class="mech-card result">
+        <strong>Net Result</strong>
+        Alveolar F<sub>A</sub>/F<sub>I</sub> of the second gas <strong>rises faster</strong> than if given alone → <strong>faster induction of anaesthesia</strong>.
+      </div>
+
+      <div class="key-point">
+        <strong>Sister effect: Concentration Effect</strong>
+        The SAME rapid-uptake principle, applied to N₂O <em>itself</em>. The higher the inspired N₂O concentration, the faster its own alveolar concentration rises. (Robert Eger, 1963.)
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:8px;">
+      <div class="panel-title">Clinical Pearls</div>
+      <ul class="drug-list">
+        <li><strong>N₂O + Sevo / Iso / Halo</strong> — classical 2nd-gas pair for faster induction</li>
+        <li><strong>Blood:gas λ</strong> — N₂O 0.47 · Sevo 0.65 · Iso 1.4 · Halo 2.3</li>
+        <li><strong>Diffusion hypoxia</strong> — opposite at end: N₂O exits fast → dilutes alveolar O₂ → give 100% O₂ for 5–10 min</li>
+        <li><strong>Closed gas spaces</strong> — N₂O enters faster than N₂ exits → expansion (bowel, pneumothorax, middle ear). <em>Avoid</em>.</li>
+        <li><strong>MAC of N₂O = 104%</strong> — cannot be used alone at 1 atm; always with adjuncts</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="margin-top:8px;">
+      <div class="panel-title">Now Showing</div>
+      <div id="currentState" style="font-size:11px; line-height:1.4;">
+        <strong style="color:#0d2c4d;">N₂O + Sevoflurane (Second Gas Effect)</strong>
+        Watch the alveolus ↓ : the cloud of blue <strong>N₂O</strong> molecules rapidly leaves into the capillary, dragging orange <strong>sevoflurane</strong> in faster from the airway.<br>
+        <em>Click <span style="color:#c8133a; font-weight:700;">"N₂O ON"</span> to toggle and compare.</em>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  Designed for lecture projection · Dr. Manu Kumar Shetty · Department of Pharmacology, MAMC &amp; LNH, New Delhi
+</footer>
+
+<script>
+// ============================================================
+//  N2O SECOND GAS EFFECT ANIMATION
+//  Cycle phases:
+//   0 = INSPIRATION   (fresh gas pulled in through bronchiole)
+//   1 = RAPID_UPTAKE  (N2O crosses into capillary blood en masse)
+//   2 = CONCENTRATING (alveolar volume contracts, remaining gas denser)
+//   3 = AUGMENTED     (extra fresh-gas inflow to refill the contracted volume)
+// ============================================================
+
+const PHASE = { INSPIRATION: 0, UPTAKE: 1, CONCENTRATING: 2, AUGMENTED: 3 };
+
+const CYCLE_TEACHING = {
+  INSPIRATION_DUR: 900,
+  UPTAKE_DUR:      1500,
+  CONCENTRATING_DUR: 700,
+  AUGMENTED_DUR:    1000
+};
+const CYCLE_CLINICAL = {
+  INSPIRATION_DUR: 120,
+  UPTAKE_DUR:      200,
+  CONCENTRATING_DUR: 90,
+  AUGMENTED_DUR:    130
+};
+let CYCLE = CYCLE_TEACHING;
+let clinicalMode = false;
+
+let phase = PHASE.INSPIRATION;
+let timeInPhase = 0;
+let cycleCount = 0;
+let n2oActive = true;   // can be toggled off to show baseline (sevo alone)
+let playing = true;
+let speedFactor = 1.0;
+let lastTimestamp = null;
+let simTime = 0;
+
+// Molecule arrays
+//   each entry: { x, y, vx, vy, type: 'n2o' | 'sevo', state: 'alveolar' | 'crossing' | 'absorbed' }
+let molecules = [];
+let rbcs = [];
+
+// Alveolus bounds (matching the SVG ellipse cx=450, cy=155, rx=340, ry=80)
+const ALV = { cx: 450, cy: 155, rx: 320, ry: 65, topY: 90, bottomY: 220 };
+const CAP_TOP = 235;
+const CAP_BOTTOM = 258;
+
+// ---------- Molecule helpers ----------
+function randomInAlveolus() {
+  // Reject-sample inside the ellipse with a margin
+  while (true) {
+    const x = ALV.cx + (Math.random() - 0.5) * 2 * ALV.rx;
+    const y = ALV.cy + (Math.random() - 0.5) * 2 * ALV.ry;
+    const dx = (x - ALV.cx) / ALV.rx;
+    const dy = (y - ALV.cy) / ALV.ry;
+    if (dx*dx + dy*dy < 0.9) return { x, y };
+  }
+}
+
+function spawnMolecule(type) {
+  const pos = randomInAlveolus();
+  molecules.push({
+    x: pos.x, y: pos.y,
+    vx: (Math.random() - 0.5) * 0.6,
+    vy: (Math.random() - 0.5) * 0.6,
+    type: type,
+    state: 'alveolar',
+    crossProgress: 0
+  });
+}
+
+function initMolecules() {
+  molecules = [];
+  // High N2O concentration: 70% → many blue molecules
+  if (n2oActive) {
+    for (let i = 0; i < 22; i++) spawnMolecule('n2o');
+  }
+  // Second gas (sevoflurane) at ~2% → few orange molecules. Keep at least 4 visible.
+  for (let i = 0; i < 5; i++) spawnMolecule('sevo');
+}
+
+function initRBCs() {
+  rbcs = [];
+  for (let i = 0; i < 6; i++) {
+    rbcs.push({ x: i * 150 + Math.random() * 50, y: CAP_TOP + 12, vx: 0.8 });
+  }
+}
+
+// ---------- Phase state machine ----------
+function stepPhase(dt) {
+  timeInPhase += dt;
+  switch (phase) {
+    case PHASE.INSPIRATION:
+      if (timeInPhase >= CYCLE.INSPIRATION_DUR) { phase = PHASE.UPTAKE; timeInPhase = 0; }
+      break;
+    case PHASE.UPTAKE:
+      if (timeInPhase >= CYCLE.UPTAKE_DUR) { phase = PHASE.CONCENTRATING; timeInPhase = 0; }
+      break;
+    case PHASE.CONCENTRATING:
+      if (timeInPhase >= CYCLE.CONCENTRATING_DUR) { phase = PHASE.AUGMENTED; timeInPhase = 0; }
+      break;
+    case PHASE.AUGMENTED:
+      if (timeInPhase >= CYCLE.AUGMENTED_DUR) {
+        phase = PHASE.INSPIRATION; timeInPhase = 0; cycleCount++;
+      }
+      break;
+  }
+}
+
+// ---------- Molecule physics & state transitions ----------
+function updateMolecules(dt) {
+  const phaseProgress = timeInPhase / [
+    CYCLE.INSPIRATION_DUR, CYCLE.UPTAKE_DUR,
+    CYCLE.CONCENTRATING_DUR, CYCLE.AUGMENTED_DUR
+  ][phase];
+
+  // Container shrink factor (visually represents alveolar volume contraction during UPTAKE)
+  let contraction = 1.0;
+  if (phase === PHASE.UPTAKE)        contraction = 1.0 - 0.18 * phaseProgress;
+  else if (phase === PHASE.CONCENTRATING) contraction = 0.82;
+  else if (phase === PHASE.AUGMENTED)     contraction = 0.82 + 0.18 * phaseProgress;
+
+  // Apply contraction to the visible alveolus ellipse
+  const ell = document.getElementById('alveolusBody');
+  ell.setAttribute('rx', 340 * contraction);
+
+  // Effective bounds shrink too
+  const effRx = ALV.rx * contraction;
+  const effRy = ALV.ry * contraction;
+
+  for (const m of molecules) {
+    if (m.state === 'absorbed') continue;
+
+    if (m.state === 'crossing') {
+      // Animate sliding down through membrane into capillary
+      m.crossProgress += dt * 0.003;
+      m.y = (1 - m.crossProgress) * m.crossStartY + m.crossProgress * (CAP_TOP + 12);
+      if (m.crossProgress >= 1) {
+        m.state = 'absorbed';
+        m.y = CAP_TOP + 12;
+        // Attach to nearest RBC's x — will scroll out with capillary flow
+        m.vx = 0.8;  // match capillary flow
+      }
+      continue;
+    }
+
+    if (m.state === 'absorbed') {
+      m.x += m.vx * speedFactor * (dt / 16);
+      continue;
+    }
+
+    // Alveolar Brownian motion
+    m.x += m.vx * speedFactor * (dt / 16);
+    m.y += m.vy * speedFactor * (dt / 16);
+
+    // Reflect off ellipse boundary
+    const dx = (m.x - ALV.cx) / effRx;
+    const dy = (m.y - ALV.cy) / effRy;
+    const r2 = dx*dx + dy*dy;
+    if (r2 > 1) {
+      // Push back inside
+      const r = Math.sqrt(r2);
+      m.x = ALV.cx + (dx / r) * effRx * 0.97;
+      m.y = ALV.cy + (dy / r) * effRy * 0.97;
+      m.vx *= -1;
+      m.vy *= -1;
+    }
+
+    // Small random nudges
+    if (Math.random() < 0.04) {
+      m.vx += (Math.random() - 0.5) * 0.3;
+      m.vy += (Math.random() - 0.5) * 0.3;
+    }
+    // Cap velocity
+    const sp = Math.hypot(m.vx, m.vy);
+    if (sp > 1.2) { m.vx *= 1.2/sp; m.vy *= 1.2/sp; }
+  }
+
+  // Trigger crossings during UPTAKE phase
+  if (phase === PHASE.UPTAKE) {
+    // N2O crosses rapidly (low solubility → bulk uptake into blood)
+    // Each frame, a fraction of remaining alveolar N2O molecules start crossing
+    if (n2oActive) {
+      const n2oAlveolar = molecules.filter(m => m.type === 'n2o' && m.state === 'alveolar');
+      // Aim to cross most N2O over the UPTAKE duration
+      const crossRate = 0.025 * speedFactor * (dt / 16);
+      for (const m of n2oAlveolar) {
+        if (Math.random() < crossRate) {
+          m.state = 'crossing';
+          m.crossStartY = m.y;
+          m.crossProgress = 0;
+        }
+      }
+    }
+    // Sevo crosses MUCH slower (higher solubility — molecules stay alveolar)
+    // Allow only ~1 sevo per cycle to cross
+    const sevoAlveolar = molecules.filter(m => m.type === 'sevo' && m.state === 'alveolar');
+    if (sevoAlveolar.length > 0 && Math.random() < 0.0008 * speedFactor * (dt / 16) * 100) {
+      const m = sevoAlveolar[0];
+      m.state = 'crossing';
+      m.crossStartY = m.y;
+      m.crossProgress = 0;
+    }
+  }
+
+  // Remove absorbed molecules once they exit the right edge
+  molecules = molecules.filter(m => !(m.state === 'absorbed' && m.x > 900));
+
+  // Trigger inflow during INSPIRATION and AUGMENTED phases
+  // (Spawns new molecules near the bronchiole opening)
+  const spawnPhase = (phase === PHASE.INSPIRATION) || (phase === PHASE.AUGMENTED);
+  if (spawnPhase) {
+    // Inflow rate is higher during AUGMENTED phase (second gas effect mechanism)
+    // Without N2O: only normal inspiration inflow
+    let rate = (phase === PHASE.INSPIRATION) ? 0.25 : (n2oActive ? 0.45 : 0.0);
+
+    if (Math.random() < rate * speedFactor * (dt / 16)) {
+      // Spawn near bronchiole opening (cx ~ 450, y ~ 70)
+      const newMol = {
+        x: 420 + Math.random() * 60,
+        y: 75 + Math.random() * 10,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: 0.5 + Math.random() * 0.3,  // moves downward into alveolus
+        state: 'alveolar',
+        crossProgress: 0
+      };
+      // 70% N2O, 30% sevo if N2O active; else 100% sevo (rare to keep count steady)
+      if (n2oActive) {
+        newMol.type = (Math.random() < 0.85) ? 'n2o' : 'sevo';
+      } else {
+        newMol.type = 'sevo';
+      }
+      molecules.push(newMol);
+    }
+  }
+
+  // Cap total molecule count to avoid runaway
+  const alveolarMols = molecules.filter(m => m.state === 'alveolar');
+  if (alveolarMols.length > 45) {
+    // Remove random excess
+    const excess = alveolarMols.length - 45;
+    for (let i = 0; i < excess; i++) {
+      const idx = molecules.indexOf(alveolarMols[i]);
+      if (idx >= 0) molecules.splice(idx, 1);
+    }
+  }
+}
+
+function updateRBCs(dt) {
+  for (const r of rbcs) {
+    r.x += r.vx * speedFactor * (dt / 16);
+    if (r.x > 900) r.x = -30;
+  }
+}
+
+// ---------- Rendering ----------
+function renderMolecules() {
+  const n2oG = document.getElementById('n2oMolecules');
+  const sevoG = document.getElementById('secondGasMolecules');
+  let n2oHTML = '', sevoHTML = '';
+  for (const m of molecules) {
+    if (m.type === 'n2o') {
+      const opacity = m.state === 'absorbed' ? 0.85 : 1.0;
+      n2oHTML += `<circle cx="${m.x.toFixed(1)}" cy="${m.y.toFixed(1)}" r="7" fill="#3182ce" stroke="#1a365d" stroke-width="1.2" opacity="${opacity}"/>`;
+      n2oHTML += `<text x="${m.x.toFixed(1)}" y="${(m.y+2.5).toFixed(1)}" font-size="7" font-weight="800" fill="white" text-anchor="middle" opacity="${opacity}">N₂O</text>`;
+    } else {
+      const opacity = m.state === 'absorbed' ? 0.85 : 1.0;
+      sevoHTML += `<circle cx="${m.x.toFixed(1)}" cy="${m.y.toFixed(1)}" r="9" fill="#ed8936" stroke="#7c2d12" stroke-width="1.5" opacity="${opacity}"/>`;
+      sevoHTML += `<text x="${m.x.toFixed(1)}" y="${(m.y+3).toFixed(1)}" font-size="7" font-weight="800" fill="white" text-anchor="middle" opacity="${opacity}">Sevo</text>`;
+    }
+  }
+  n2oG.innerHTML = n2oHTML;
+  sevoG.innerHTML = sevoHTML;
+}
+
+function renderRBCs() {
+  const g = document.getElementById('rbcLayer');
+  let html = '';
+  for (const r of rbcs) {
+    html += `<ellipse cx="${r.x.toFixed(1)}" cy="${r.y.toFixed(1)}" rx="11" ry="6" fill="#dc2626" stroke="#7a1a2a" stroke-width="1"/>`;
+    html += `<ellipse cx="${r.x.toFixed(1)}" cy="${r.y.toFixed(1)}" rx="5" ry="2.5" fill="#7a1a2a" opacity="0.6"/>`;
+  }
+  g.innerHTML = html;
+}
+
+// ---------- Phase banner ----------
+function updatePhaseBanner() {
+  const banner = document.getElementById('phaseBanner');
+  const labels = {
+    [PHASE.INSPIRATION]:   { text: '① INSPIRATION — fresh gas mixture entering alveolus',         color: '#2c5282', bg: '#ebf4fc' },
+    [PHASE.UPTAKE]:        { text: '② RAPID N₂O UPTAKE — bulk absorption into pulmonary blood',  color: '#7a1a2a', bg: '#fef1f1' },
+    [PHASE.CONCENTRATING]: { text: '③ CONCENTRATING EFFECT — sevoflurane denser in smaller volume', color: '#b7791f', bg: '#fffbeb' },
+    [PHASE.AUGMENTED]:     { text: '④ AUGMENTED INFLOW — extra fresh gas drawn in (more sevo!)',   color: '#2f855a', bg: '#f0fdf4' }
+  };
+  // Without N2O, only INSPIRATION makes physical sense; show a simpler label
+  let lbl = labels[phase];
+  if (!n2oActive) {
+    if (phase === PHASE.INSPIRATION) lbl = { text: '① INSPIRATION — sevoflurane alone (no N₂O)', color: '#4a5568', bg: '#f7fafc' };
+    else if (phase === PHASE.UPTAKE)        lbl = { text: '② Slow sevo uptake — limited by solubility', color: '#4a5568', bg: '#f7fafc' };
+    else if (phase === PHASE.CONCENTRATING) lbl = { text: '③ No concentrating effect (no rapid N₂O uptake)', color: '#4a5568', bg: '#f7fafc' };
+    else                                      lbl = { text: '④ Normal inflow only — no augmentation',     color: '#4a5568', bg: '#f7fafc' };
+  }
+  banner.textContent = lbl.text;
+  banner.style.color = lbl.color;
+  banner.style.background = lbl.bg;
+  banner.style.borderColor = lbl.color;
+
+  // Show/hide inflow arrow
+  const arr = document.getElementById('inflowArrow');
+  arr.setAttribute('opacity', (phase === PHASE.INSPIRATION || phase === PHASE.AUGMENTED) ? 1 : 0);
+}
+
+// ---------- Graph ----------
+// Build two reference curves over a fixed time axis (representing ~20 minutes)
+// Mono-exponential approach to 1.0:
+//   Alone:   FA/FI = 1 - exp(-t/TAU_alone)
+//   WithN2O: FA/FI = 1 - exp(-t/TAU_with)
+// (Schematic — not literal Eger curves, but the right qualitative shape.)
+const GRAPH_T_MAX = 20000; // 20 seconds of simTime maps to full x-axis
+const TAU_ALONE = 7500;
+const TAU_WITH  = 3500;
+
+function buildGraphCurves() {
+  const N = 100;
+  const xToFa = t => 1 - Math.exp(-t / TAU_ALONE);
+  const xToFaFast = t => 1 - Math.exp(-t / TAU_WITH);
+  const tToX = t => (t / GRAPH_T_MAX) * 860;
+  const faToY = f => 150 - f * 130;  // 0 → y=150, 1 → y=20
+
+  let dAlone = '', dWith = '';
+  for (let i = 0; i <= N; i++) {
+    const t = (i / N) * GRAPH_T_MAX;
+    const x = tToX(t);
+    const yA = faToY(xToFa(t));
+    const yW = faToY(xToFaFast(t));
+    dAlone += (i === 0 ? 'M ' : 'L ') + x.toFixed(1) + ' ' + yA.toFixed(1) + ' ';
+    dWith  += (i === 0 ? 'M ' : 'L ') + x.toFixed(1) + ' ' + yW.toFixed(1) + ' ';
+  }
+  document.getElementById('curveAlone').setAttribute('d', dAlone);
+  document.getElementById('curveWithN2O').setAttribute('d', dWith);
+}
+
+function updateGraphCursor() {
+  // simTime loops modulo GRAPH_T_MAX
+  const t = simTime % GRAPH_T_MAX;
+  const x = (t / GRAPH_T_MAX) * 860;
+  const cursor = document.getElementById('graphCursor');
+  cursor.setAttribute('x1', x);
+  cursor.setAttribute('x2', x);
+
+  const yAlone = 150 - (1 - Math.exp(-t / TAU_ALONE)) * 130;
+  const yWith  = 150 - (1 - Math.exp(-t / TAU_WITH)) * 130;
+  document.getElementById('cursorDotAlone').setAttribute('cx', x);
+  document.getElementById('cursorDotAlone').setAttribute('cy', yAlone);
+  document.getElementById('cursorDotWith').setAttribute('cx', x);
+  document.getElementById('cursorDotWith').setAttribute('cy', yWith);
+  // If N2O off, the live cursor follows the "alone" curve instead
+  if (!n2oActive) {
+    document.getElementById('cursorDotWith').setAttribute('cy', yAlone);
+    document.getElementById('cursorDotWith').setAttribute('fill', '#a0aec0');
+  } else {
+    document.getElementById('cursorDotWith').setAttribute('fill', '#48bb78');
+  }
+}
+
+// ---------- Now-Showing text ----------
+function updateCurrentStateText() {
+  const el = document.getElementById('currentState');
+  if (n2oActive) {
+    el.innerHTML = `
+      <strong style="color:#2b6cb0;">N₂O + Sevoflurane (Second Gas Effect)</strong>
+      Many blue <strong>N₂O</strong> molecules rapidly cross into capillary blood (low solubility → bulk uptake). The alveolus visibly contracts; orange <strong>sevoflurane</strong> molecules concentrate. Fresh gas inflow brings <em>more</em> sevo per breath.<br>
+      <strong style="color:#38a169;">Result:</strong> Sevo F<sub>A</sub>/F<sub>I</sub> rises faster (green curve above grey).
+    `;
+  } else {
+    el.innerHTML = `
+      <strong style="color:#4a5568;">Sevoflurane alone (baseline)</strong>
+      No N₂O present. Sevo uptake is limited by its own blood solubility — slow alveolar build-up. No concentrating effect, no augmented inflow.<br>
+      <em>Click <span style="color:#c8133a; font-weight:700;">"N₂O ON"</span> to add 70% N₂O and see the second gas effect.</em>
+    `;
+  }
+  // Side-stats wording
+  document.getElementById('aloneRate').textContent = 'τ ≈ 7.5';
+  document.getElementById('withRate').textContent = n2oActive ? 'τ ≈ 3.5' : '—';
+  document.getElementById('effectStat').textContent = n2oActive ? 'N₂O accelerates uptake ↑' : 'No N₂O — baseline only';
+  document.getElementById('effectStat').style.background = n2oActive ? '#d69e2e' : '#4a5568';
+}
+
+// ---------- Main loop ----------
+function loop(ts) {
+  if (!lastTimestamp) lastTimestamp = ts;
+  const dtReal = ts - lastTimestamp;
+  lastTimestamp = ts;
+  if (playing) {
+    const dt = dtReal * speedFactor;
+    simTime += dt;
+    stepPhase(dt);
+    updateMolecules(dt);
+    updateRBCs(dt);
+    renderMolecules();
+    renderRBCs();
+    updatePhaseBanner();
+    updateGraphCursor();
+    updateCurrentStateText();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---------- Controls ----------
+document.getElementById('playBtn').addEventListener('click', (e) => {
+  playing = !playing;
+  e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+});
+
+document.getElementById('stepBtn').addEventListener('click', () => {
+  // Advance to next phase
+  phase = (phase + 1) % 4;
+  timeInPhase = 0;
+  updatePhaseBanner();
+});
+
+document.getElementById('modeBtn').addEventListener('click', (e) => {
+  clinicalMode = !clinicalMode;
+  CYCLE = clinicalMode ? CYCLE_CLINICAL : CYCLE_TEACHING;
+  e.target.textContent = clinicalMode ? '🐇 Fast (Clinical 10×)' : '🐢 Slow (Teaching)';
+  phase = PHASE.INSPIRATION;
+  timeInPhase = 0;
+  cycleCount = 0;
+});
+
+document.getElementById('n2oBtn').addEventListener('click', (e) => {
+  n2oActive = !n2oActive;
+  e.target.classList.toggle('active');
+  e.target.textContent = n2oActive ? '💨 N₂O ON (70%)' : '🚫 N₂O OFF';
+  // Reset molecules to reflect the new gas composition
+  initMolecules();
+  phase = PHASE.INSPIRATION;
+  timeInPhase = 0;
+});
+
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+  speedFactor = parseFloat(e.target.value);
+  document.getElementById('speedLabel').textContent = speedFactor.toFixed(2) + '×';
+});
+
+// ---------- Initialise ----------
+buildGraphCurves();
+initMolecules();
+initRBCs();
+requestAnimationFrame(loop);
+
+</script>
+
+</body>
+</html>
