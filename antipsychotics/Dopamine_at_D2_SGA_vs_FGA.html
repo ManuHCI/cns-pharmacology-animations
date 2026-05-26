@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dopamine at D2: SGA vs FGA | MAMC Pharmacology</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f4f6fa;
+    color: #1a2332;
+    padding: 5px 12px 3px;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    text-align: center;
+    padding: 1px 0 5px;
+    border-bottom: 2px solid #1B7A5E;
+    margin-bottom: 7px;
+  }
+  h1 { font-size: 19px; color: #0d2c4d; font-weight: 700; display: inline-block; }
+  .subtitle { font-size: 11px; color: #4a5568; display: inline-block; }
+  .badge { display: inline-block; background: #1B7A5E; color: white; padding: 2px 9px; border-radius: 4px; font-size: 12px; margin-left: 6px; vertical-align: middle; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 290px;
+    gap: 9px;
+    flex: 1;
+    min-height: 0;
+  }
+  .panel {
+    background: white;
+    border-radius: 8px;
+    padding: 9px 11px;
+    box-shadow: 0 2px 6px rgba(13, 44, 77, 0.06);
+  }
+
+  /* Mode toggle */
+  .mode-toggle {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 7px;
+  }
+  .mode-btn {
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 2.5px solid;
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  #modeSGA { color: #5B9AAC; border-color: #5B9AAC; }
+  #modeSGA.active { background: #5B9AAC; color: white; box-shadow: 0 3px 8px rgba(91,154,172,0.4); }
+  #modeFGA { color: #9b2c2c; border-color: #9b2c2c; }
+  #modeFGA.active { background: #9b2c2c; color: white; box-shadow: 0 3px 8px rgba(155,44,44,0.4); }
+
+  .phase-banner {
+    text-align: center;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 800;
+    border: 2.5px solid;
+    margin-bottom: 7px;
+    letter-spacing: 0.2px;
+    transition: all 0.4s;
+  }
+
+  .animation-stage {
+    width: 100%;
+    background: linear-gradient(180deg, #fafafa 0%, #f0f4f8 100%);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid #e2e8f0;
+  }
+  svg.main-svg { width: 100%; height: auto; display: block; }
+
+  .controls {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 8px;
+    justify-content: center;
+  }
+  button {
+    border: none;
+    padding: 7px 14px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: #0d2c4d; color: white; }
+  .btn-primary:hover { background: #1a3d66; }
+  .btn-secondary { background: #e2e8f0; color: #1a2332; }
+  .btn-secondary:hover { background: #cbd5e0; }
+  .btn-step { background: #1B7A5E; color: white; }
+  .btn-step:hover { background: #155e48; }
+  .speed-control { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #4a5568; }
+  .speed-control input[type="range"] { width: 90px; }
+
+  /* Sidebar */
+  .panel-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0d2c4d;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .compare-box {
+    padding: 7px 9px;
+    border-radius: 5px;
+    border-left: 3px solid;
+    background: #f7fafc;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .compare-box.sga { border-color: #5B9AAC; }
+  .compare-box.sga strong { color: #2c5e6e; display: block; font-size: 12px; margin-bottom: 2px; }
+  .compare-box.fga { border-color: #9b2c2c; }
+  .compare-box.fga strong { color: #9b2c2c; display: block; font-size: 12px; margin-bottom: 2px; }
+  .compare-box .result { font-weight: 700; display: block; margin-top: 3px; }
+  .compare-box.sga .result { color: #2f855a; }
+  .compare-box.fga .result { color: #c8133a; }
+
+  .note {
+    font-size: 10px;
+    color: #4a5568;
+    background: #fff8e1;
+    border: 1px solid #f6cf6e;
+    padding: 5px 8px;
+    border-radius: 5px;
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+  .note strong { color: #b7791f; }
+
+  .drug-list { list-style: none; margin-top: 3px; }
+  .drug-list li { padding: 3px 0; border-bottom: 1px solid #e2e8f0; font-size: 11px; line-height: 1.3; }
+  .drug-list li:last-child { border-bottom: none; }
+  .drug-list li strong { color: #553c9a; }
+
+  footer { text-align: center; margin-top: 5px; font-size: 9px; color: #718096; }
+
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Dopamine vs Antipsychotic at the D2 Receptor <span class="badge">SGA vs FGA</span></h1>
+  <span class="subtitle"> · Dept. of Pharmacology, MAMC · 2nd Year MBBS / MD</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Animation -->
+  <div class="panel">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeSGA">SGA (Atypical) — fast K<sub>off</sub></button>
+      <button class="mode-btn" id="modeFGA">FGA (Typical) — very slow K<sub>off</sub></button>
+    </div>
+
+    <div class="phase-banner" id="phaseBanner" style="color:#5B9AAC; border-color:#5B9AAC; background:#eaf3f7;">
+      ① SGA bound to D2 — dopamine far away
+    </div>
+
+    <div class="animation-stage">
+      <svg class="main-svg" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+
+        <line x1="50" y1="297" x2="850" y2="297" stroke="#a86332" stroke-width="2.5"/>
+
+        <!-- D2 RECEPTOR -->
+        <g id="d2Group">
+          <path d="M 300 295 L 300 205 L 405 205 L 405 250 L 495 250 L 495 205 L 600 205 L 600 295 Z"
+                fill="#1B7A5E" stroke="#0d3526" stroke-width="2"/>
+          <text x="450" y="282" font-size="32" font-weight="800" fill="white" text-anchor="middle">D2</text>
+        </g>
+
+        <!-- BOND INDICATOR (FGA mode "tight bind ≈ covalent") -->
+        <g id="bondIndicator" opacity="0" style="pointer-events:none;">
+          <rect x="412" y="222" width="76" height="22" fill="#fef3c7" opacity="0.95"
+                stroke="#92400e" stroke-width="1.4" rx="3"/>
+          <text x="450" y="240" font-size="20" font-weight="900" fill="#92400e" text-anchor="middle">≡</text>
+        </g>
+
+        <!-- DRUG MOLECULE -->
+        <g id="drugMol" transform="translate(450, 180)"></g>
+
+        <!-- DA MOLECULE -->
+        <g id="daMol" transform="translate(110, 55)">
+          <ellipse cx="0" cy="-22" rx="50" ry="42" fill="#1B7A5E" stroke="#0d3526" stroke-width="2"/>
+          <rect x="-22" y="12" width="44" height="50" fill="#1B7A5E" stroke="#0d3526" stroke-width="2"/>
+          <text x="0" y="-16" font-size="26" font-weight="800" fill="white" text-anchor="middle">DA</text>
+        </g>
+
+        <!-- ✓ feedback (SGA mode success) -->
+        <g id="checkMark" opacity="0" style="pointer-events:none;">
+          <circle cx="760" cy="105" r="42" fill="#1B7A5E" opacity="0.18"/>
+          <text x="760" y="122" font-size="52" font-weight="800" fill="#1B7A5E" text-anchor="middle">✓</text>
+        </g>
+
+        <!-- ✗ feedback (FGA mode rejection) -->
+        <g id="crossMark" opacity="0" style="pointer-events:none;">
+          <circle cx="760" cy="105" r="42" fill="#dc2626" opacity="0.18"/>
+          <text x="760" y="123" font-size="52" font-weight="800" fill="#dc2626" text-anchor="middle">✗</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="controls">
+      <button class="btn-primary" id="playBtn">⏸ Pause</button>
+      <button class="btn-step" id="stepBtn">▸ Next Phase</button>
+      <button class="btn-secondary" id="restartBtn">↺ Restart</button>
+      <div class="speed-control">
+        Speed: <input type="range" id="speedSlider" min="0.25" max="2" step="0.25" value="1">
+        <span id="speedLabel">1.0×</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Compact teaching content -->
+  <aside>
+    <div class="panel">
+      <div class="panel-title">Outcome at D2 Receptor</div>
+
+      <div class="compare-box sga">
+        <strong>🔵 SGA (Atypical)</strong>
+        Fast K<sub>off</sub> → drug spontaneously dissociates → DA fills the empty pocket.
+        <span class="result">→ No EPS · No ↑Prolactin</span>
+      </div>
+
+      <div class="compare-box fga">
+        <strong>🔴 FGA (Typical)</strong>
+        Very slow K<sub>off</sub> → drug stays bound → DA cannot displace it, bounces off.
+        <span class="result">→ EPS + ↑Prolactin</span>
+      </div>
+
+      <div class="note">
+        <strong>Pharmacology note:</strong> FGAs are <em>not literally</em> covalent — but K<sub>off</sub> is so slow (haloperidol ≈ 30 min on D2 vs clozapine &lt; 1 min) that it's functionally non-displaceable during a DA surge.
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top: 8px;">
+      <div class="panel-title">Drugs to Remember</div>
+      <ul class="drug-list">
+        <li><strong style="color:#9b2c2c;">FGA:</strong> Haloperidol, Fluphenazine, Chlorpromazine, Trifluoperazine</li>
+        <li><strong style="color:#5B9AAC;">SGA:</strong> Clozapine, Quetiapine, Olanzapine, Risperidone, Aripiprazole</li>
+        <li><strong style="color:#553c9a;">Tip:</strong> Among SGAs, <em>Risperidone</em> has the slowest K<sub>off</sub> → most prolactin elevation in this group.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  Designed for lecture projection · Dr. Manu Kumar Shetty · Dept. of Pharmacology, MAMC &amp; LNH, New Delhi
+</footer>
+
+<script>
+// ============================================================
+//  DOPAMINE AT D2 — SGA vs FGA (Compact single-page layout)
+// ============================================================
+
+let mode = 'sga';
+let phaseIdx = 0;
+let timeInPhase = 0;
+let playing = true;
+let speedFactor = 1.0;
+let lastTimestamp = null;
+
+const DRUG_VISUAL = {
+  sga: { fillHead: '#5B9AAC', strokeHead: '#1a4855', label: 'SGA' },
+  fga: { fillHead: '#9b2c2c', strokeHead: '#5c0e0e', label: 'FGA' }
+};
+
+function getDrugSVG() {
+  const v = DRUG_VISUAL[mode];
+  return `
+    <ellipse cx="0" cy="-22" rx="55" ry="42" fill="${v.fillHead}" stroke="${v.strokeHead}" stroke-width="2"/>
+    <rect x="-22" y="12" width="44" height="52" fill="${v.fillHead}" stroke="${v.strokeHead}" stroke-width="2"/>
+    <text x="0" y="-16" font-size="24" font-weight="800" fill="white" text-anchor="middle">${v.label}</text>
+    <circle cx="38" cy="20" r="14" fill="#dc2626" stroke="white" stroke-width="2"/>
+    <line x1="29" y1="20" x2="47" y2="20" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  `;
+}
+
+// Coordinate system note (viewBox 900 x 300):
+//   D2 receptor occupies y=205 to 295. Notch from y=205 to 250.
+//   Pocket "dock" position for molecules = (450, 180).
+//   Top zone (y < 200) holds DA/drug free movement.
+const POCKET = { x: 450, y: 180 };
+const DA_START = { x: 110, y: 55 };
+const DRUG_OFF = { x: 770, y: 50 };
+
+const PHASES_SGA = [
+  { name: 'SGA_BOUND', duration: 1500,
+    banner: '① SGA bound to D2 — receptor blocked, no signal',
+    bannerColor: '#5B9AAC', statusColor: '#9b2c2c', feedback: 'none',
+    da:   { from: DA_START, to: DA_START },
+    drug: { from: POCKET,   to: POCKET } },
+  { name: 'DA_APPROACH', duration: 1800,
+    banner: '② Dopamine surge — DA moves toward D2',
+    bannerColor: '#1B7A5E', statusColor: '#b7791f', feedback: 'none',
+    da:   { from: DA_START,         to: { x: 340, y: 130 } },
+    drug: { from: POCKET,           to: POCKET } },
+  { name: 'DISPLACEMENT', duration: 1400,
+    banner: '③ SGA dissociates ↗ — DA slides into D2 ↘',
+    bannerColor: '#b7791f', statusColor: '#b7791f', feedback: 'none',
+    da:   { from: { x: 340, y: 130 }, to: POCKET },
+    drug: { from: POCKET,             to: DRUG_OFF } },
+  { name: 'DA_BOUND', duration: 2000,
+    banner: '④ ✓ DA bound to D2 — physiologic signal RESTORED',
+    bannerColor: '#1B7A5E', statusColor: '#1B7A5E', feedback: 'check',
+    da:   { from: POCKET,   to: POCKET },
+    drug: { from: DRUG_OFF, to: DRUG_OFF } },
+  { name: 'RESET', duration: 1700,
+    banner: '⑤ DA dissociates — SGA returns to D2',
+    bannerColor: '#4a5568', statusColor: '#4a5568', feedback: 'none',
+    da:   { from: POCKET,   to: DA_START },
+    drug: { from: DRUG_OFF, to: POCKET } }
+];
+
+const PHASES_FGA = [
+  { name: 'FGA_BOUND', duration: 1500,
+    banner: '① FGA tightly bound to D2 — slow K_off ≈ irreversible block',
+    bannerColor: '#9b2c2c', statusColor: '#9b2c2c', feedback: 'none',
+    da:   { from: DA_START, to: DA_START },
+    drug: { from: POCKET,   to: POCKET } },
+  { name: 'DA_APPROACH', duration: 1800,
+    banner: '② Dopamine surge — DA moves toward D2',
+    bannerColor: '#1B7A5E', statusColor: '#b7791f', feedback: 'none',
+    da:   { from: DA_START,         to: { x: 340, y: 130 } },
+    drug: { from: POCKET,           to: POCKET } },
+  { name: 'REJECTION', duration: 1600,
+    banner: '③ DA hits FGA-occupied D2 — FGA holds → DA bounces back!',
+    bannerColor: '#9b2c2c', statusColor: '#9b2c2c', feedback: 'cross_growing',
+    da:   { from: { x: 340, y: 130 }, via: { x: 432, y: 158 }, to: { x: 350, y: 55 } },
+    drug: { from: POCKET,             to: POCKET } },
+  { name: 'STILL_BLOCKED', duration: 2000,
+    banner: '④ ✗ FGA still bound — D2 remains BLOCKED, no signal',
+    bannerColor: '#9b2c2c', statusColor: '#9b2c2c', feedback: 'cross',
+    da:   { from: { x: 350, y: 55 }, to: { x: 350, y: 55 } },
+    drug: { from: POCKET,            to: POCKET } },
+  { name: 'WASHOUT', duration: 1700,
+    banner: '⑤ DA washes away — FGA still bound, ready to reject next DA',
+    bannerColor: '#4a5568', statusColor: '#9b2c2c', feedback: 'none',
+    da:   { from: { x: 350, y: 55 }, to: DA_START },
+    drug: { from: POCKET,            to: POCKET } }
+];
+
+function currentPhases() { return mode === 'sga' ? PHASES_SGA : PHASES_FGA; }
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function easeInOut(t) { return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2; }
+
+function interpPos(pos, t) {
+  const s = easeInOut(t);
+  if (pos.via) {
+    return {
+      x: (1-s)*(1-s)*pos.from.x + 2*(1-s)*s*pos.via.x + s*s*pos.to.x,
+      y: (1-s)*(1-s)*pos.from.y + 2*(1-s)*s*pos.via.y + s*s*pos.to.y
+    };
+  }
+  return { x: lerp(pos.from.x, pos.to.x, s), y: lerp(pos.from.y, pos.to.y, s) };
+}
+
+function renderFrame() {
+  const phase = currentPhases()[phaseIdx];
+  const t = Math.min(1, timeInPhase / phase.duration);
+
+  const daP   = interpPos(phase.da,   t);
+  const drugP = interpPos(phase.drug, t);
+  document.getElementById('daMol').setAttribute('transform',   `translate(${daP.x.toFixed(1)}, ${daP.y.toFixed(1)})`);
+  document.getElementById('drugMol').setAttribute('transform', `translate(${drugP.x.toFixed(1)}, ${drugP.y.toFixed(1)})`);
+
+  const banner = document.getElementById('phaseBanner');
+  banner.textContent = phase.banner;
+  banner.style.color = phase.bannerColor;
+  banner.style.borderColor = phase.bannerColor;
+  banner.style.background = phase.bannerColor + '15';
+
+  // ✓ feedback
+  const check = document.getElementById('checkMark');
+  let checkOp = 0;
+  if (phase.feedback === 'check') {
+    if (t < 0.2) checkOp = t / 0.2;
+    else if (t > 0.85) checkOp = (1 - t) / 0.15;
+    else checkOp = 1;
+  }
+  check.setAttribute('opacity', Math.max(0, checkOp));
+
+  // ✗ feedback
+  const cross = document.getElementById('crossMark');
+  let crossOp = 0;
+  if (phase.feedback === 'cross_growing') {
+    if (t > 0.45) crossOp = Math.min(1, (t - 0.45) / 0.2);
+  } else if (phase.feedback === 'cross') {
+    if (t < 0.15) crossOp = t / 0.15;
+    else if (t > 0.88) crossOp = (1 - t) / 0.12;
+    else crossOp = 1;
+  }
+  cross.setAttribute('opacity', Math.max(0, crossOp));
+
+  // Bond indicator — visible in FGA mode whenever drug is in the pocket
+  const bond = document.getElementById('bondIndicator');
+  if (mode === 'fga' && Math.abs(drugP.x - POCKET.x) < 5 && Math.abs(drugP.y - POCKET.y) < 5) {
+    bond.setAttribute('opacity', 1);
+  } else {
+    bond.setAttribute('opacity', 0);
+  }
+}
+
+function loop(ts) {
+  if (!lastTimestamp) lastTimestamp = ts;
+  const dtReal = ts - lastTimestamp;
+  lastTimestamp = ts;
+  if (playing) {
+    const dt = dtReal * speedFactor;
+    timeInPhase += dt;
+    const phases = currentPhases();
+    if (timeInPhase >= phases[phaseIdx].duration) {
+      phaseIdx = (phaseIdx + 1) % phases.length;
+      timeInPhase = 0;
+    }
+  }
+  renderFrame();
+  requestAnimationFrame(loop);
+}
+
+function setMode(newMode) {
+  mode = newMode;
+  document.getElementById('modeSGA').classList.toggle('active', mode === 'sga');
+  document.getElementById('modeFGA').classList.toggle('active', mode === 'fga');
+  document.getElementById('drugMol').innerHTML = getDrugSVG();
+  phaseIdx = 0;
+  timeInPhase = 0;
+  renderFrame();
+}
+
+document.getElementById('modeSGA').addEventListener('click', () => setMode('sga'));
+document.getElementById('modeFGA').addEventListener('click', () => setMode('fga'));
+document.getElementById('playBtn').addEventListener('click', (e) => {
+  playing = !playing;
+  e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+});
+document.getElementById('stepBtn').addEventListener('click', () => {
+  const phases = currentPhases();
+  phaseIdx = (phaseIdx + 1) % phases.length;
+  timeInPhase = 0;
+  renderFrame();
+});
+document.getElementById('restartBtn').addEventListener('click', () => {
+  phaseIdx = 0; timeInPhase = 0;
+  renderFrame();
+});
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+  speedFactor = parseFloat(e.target.value);
+  document.getElementById('speedLabel').textContent = speedFactor.toFixed(2) + '×';
+});
+
+document.getElementById('drugMol').innerHTML = getDrugSVG();
+renderFrame();
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

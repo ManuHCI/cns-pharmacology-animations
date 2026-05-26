@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Levodopa ON-OFF Phenomenon Simulator | MAMC Pharmacology CAL</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #fafaf7;
+  color: #1f1f1c;
+  min-height: 100vh;
+}
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+  overflow: hidden;
+  position: relative;
+}
+header {
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid #ececec;
+}
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: #133a5e;
+}
+.subtitle { font-size: 13px; color: #666; }
+.fullscreen-btn {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 1px solid #d0d0c8;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #555;
+}
+.fullscreen-btn:hover { background: #f4f3ee; }
+.main {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 0;
+}
+@media (max-width: 920px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { border-left: none !important; border-top: 1px solid #ececec; }
+}
+.canvas { padding: 20px 24px 24px; }
+.sidebar {
+  padding: 20px 24px;
+  border-left: 1px solid #ececec;
+  background: #fbfaf6;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.sidebar h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: #133a5e;
+}
+.sidebar p { margin: 0 0 10px; color: #333; }
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 14px 0 8px;
+  flex-wrap: wrap;
+}
+.sev-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 320px;
+}
+.sev-control input[type=range] { flex: 1; height: 6px; cursor: pointer; }
+.sev-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  min-width: 200px;
+}
+.stats {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 4px;
+  flex-wrap: wrap;
+}
+.stat-box {
+  flex: 1;
+  min-width: 130px;
+  padding: 8px 14px;
+  background: #f4f3ee;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: #555;
+}
+.stat-box b { font-size: 18px; font-weight: 600; color: #1f1f1c; display: block; margin-top: 2px; }
+.stat-on { border-left: 3px solid #4A9D2A; }
+.stat-off { border-left: 3px solid #888780; }
+.stat-dysk { border-left: 3px solid #C04828; }
+.legend {
+  display: flex;
+  gap: 16px;
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  color: #555;
+  flex-wrap: wrap;
+}
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin-right: 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.swatch-line {
+  display: inline-block;
+  width: 22px;
+  height: 3px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+.readout {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: #555;
+  min-height: 18px;
+}
+.readout b { color: #1f1f1c; font-weight: 600; }
+.axis-line { stroke: #555; stroke-width: 1; }
+.axis-text { fill: #666; font-size: 11px; pointer-events: none; }
+.dose-mark { stroke: #BA7517; stroke-width: 1.5; stroke-dasharray: 4 3; pointer-events: none; }
+.dose-label { fill: #854F0B; font-size: 11px; font-weight: 500; pointer-events: none; }
+.plasma-curve { fill: none; stroke: #185FA5; stroke-width: 2.5; pointer-events: none; }
+.win-band { fill: #C0DD97; fill-opacity: 0.35; pointer-events: none; }
+.dysk-band { fill: #F5C4B3; fill-opacity: 0.32; pointer-events: none; }
+.off-band { fill: #D3D1C7; fill-opacity: 0.35; pointer-events: none; }
+.win-line { stroke: #639922; stroke-width: 1.5; pointer-events: none; }
+.region-label { fill: #444; font-size: 11px; font-style: italic; pointer-events: none; }
+.hover-cursor { stroke: #555; stroke-width: 1; stroke-dasharray: 3 2; pointer-events: none; }
+footer {
+  padding: 12px 28px;
+  border-top: 1px solid #ececec;
+  font-size: 11.5px;
+  color: #888;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+<button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+
+<header>
+<h1>Levodopa pharmacokinetics &amp; the ON–OFF phenomenon</h1>
+<div class="subtitle">The shrinking therapeutic window in advancing Parkinson's disease · MBBS Pharmacology CAL · MAMC</div>
+</header>
+
+<div class="main">
+<div class="canvas">
+
+<svg id="plot" width="100%" viewBox="0 0 700 380" role="img" preserveAspectRatio="xMidYMid meet">
+<title>Plasma levodopa over 12 hours with shrinking therapeutic window</title>
+<desc>Plot showing oral levodopa plasma concentration across three doses with a therapeutic window band that narrows as disease severity increases.</desc>
+
+<!-- Background zones -->
+<rect id="dysk-band" class="dysk-band" x="60" y="20" width="590" height="50"/>
+<rect id="win-band" class="win-band" x="60" y="70" width="590" height="120"/>
+<rect id="off-band" class="off-band" x="60" y="190" width="590" height="80"/>
+
+<!-- Window boundary lines -->
+<line id="upper-line" class="win-line" x1="60" y1="70" x2="650" y2="70"/>
+<line id="lower-line" class="win-line" x1="60" y1="190" x2="650" y2="190"/>
+
+<!-- Region labels -->
+<text id="dysk-label" class="region-label" x="640" y="48" text-anchor="end" fill="#A32D2D" style="font-weight:500">DYSKINESIA</text>
+<text id="win-label" class="region-label" x="640" y="135" text-anchor="end" fill="#3B6D11" style="font-weight:500">ON (therapeutic)</text>
+<text id="off-label" class="region-label" x="640" y="240" text-anchor="end" fill="#5F5E5A" style="font-weight:500">OFF</text>
+
+<!-- Dose markers -->
+<line class="dose-mark" x1="60" y1="20" x2="60" y2="270"/>
+<line class="dose-mark" x1="256.67" y1="20" x2="256.67" y2="270"/>
+<line class="dose-mark" x1="453.33" y1="20" x2="453.33" y2="270"/>
+<text class="dose-label" x="60" y="14" text-anchor="middle">↓ Dose 1</text>
+<text class="dose-label" x="257" y="14" text-anchor="middle">↓ Dose 2</text>
+<text class="dose-label" x="453" y="14" text-anchor="middle">↓ Dose 3</text>
+
+<!-- Y-axis -->
+<line class="axis-line" x1="60" y1="20" x2="60" y2="270"/>
+<line class="axis-line" x1="60" y1="270" x2="650" y2="270"/>
+
+<!-- Y-axis labels -->
+<text class="axis-text" x="55" y="25" text-anchor="end">100</text>
+<text class="axis-text" x="55" y="147" text-anchor="end">50</text>
+<text class="axis-text" x="55" y="273" text-anchor="end">0</text>
+<text class="axis-text" x="22" y="147" text-anchor="middle" transform="rotate(-90 22 147)">Plasma L-dopa (relative)</text>
+
+<!-- Plasma curve -->
+<polyline id="plasma-curve" class="plasma-curve" points=""/>
+
+<!-- Hover cursor -->
+<line id="hover-cursor" class="hover-cursor" x1="60" y1="20" x2="60" y2="270" style="display:none"/>
+<circle id="hover-dot" cx="60" cy="270" r="4" fill="#185FA5" style="display:none;pointer-events:none"/>
+
+<!-- X-axis labels -->
+<text class="axis-text" x="60" y="288" text-anchor="middle">0h</text>
+<text class="axis-text" x="158" y="288" text-anchor="middle">2h</text>
+<text class="axis-text" x="257" y="288" text-anchor="middle">4h</text>
+<text class="axis-text" x="355" y="288" text-anchor="middle">6h</text>
+<text class="axis-text" x="453" y="288" text-anchor="middle">8h</text>
+<text class="axis-text" x="552" y="288" text-anchor="middle">10h</text>
+<text class="axis-text" x="650" y="288" text-anchor="middle">12h</text>
+<text class="axis-text" x="355" y="305" text-anchor="middle" style="font-size:12px;font-weight:500;fill:#444;">Time (hours)</text>
+
+<!-- State timeline strip -->
+<text class="axis-text" x="60" y="328" style="font-size:11px;font-weight:500;fill:#444;">Patient state across the day:</text>
+<g id="strip"></g>
+<rect x="60" y="333" width="590" height="20" fill="none" stroke="#aaa" stroke-width="0.5" pointer-events="none"/>
+
+<!-- Transparent overlay for hover -->
+<rect id="hover-area" x="60" y="20" width="590" height="250" fill="transparent" style="cursor:crosshair"/>
+
+</svg>
+
+<div class="readout" id="readout">Move slider to change disease severity · hover over the curve for plasma value and patient state</div>
+
+<div class="controls">
+<div class="sev-control">
+<span class="sev-label" id="sev-label">Disease severity: 10% — Early</span>
+<input type="range" id="severity" min="0" max="100" value="10">
+</div>
+</div>
+
+<div class="stats">
+<div class="stat-box stat-on">ON time<b id="on-pct">--</b></div>
+<div class="stat-box stat-off">OFF time<b id="off-pct">--</b></div>
+<div class="stat-box stat-dysk">Dyskinesia time<b id="dysk-pct">--</b></div>
+</div>
+
+<div class="legend">
+<span><span class="swatch-line" style="background:#185FA5"></span>Plasma L-dopa</span>
+<span><span class="swatch" style="background:#C0DD97"></span>ON (therapeutic)</span>
+<span><span class="swatch" style="background:#F5C4B3"></span>Dyskinesia zone</span>
+<span><span class="swatch" style="background:#D3D1C7"></span>OFF zone</span>
+<span><span class="swatch-line" style="background:#BA7517"></span>L-dopa dose</span>
+</div>
+
+</div><!-- /.canvas -->
+
+<aside class="sidebar" id="sidebar">
+<h2 id="sb-title">Early disease</h2>
+<div id="sb-content"></div>
+<div style="margin-top:14px; padding-top:12px; border-top:1px solid #e2e0d6; font-size:12px; color:#777;">
+<strong>Teaching tip:</strong> Drag the slider slowly from 0 → 100. The dose interval and plasma curve shape stay similar — but watch the <span style="color:#3B6D11;font-weight:600">green ON band</span> collapse. That collapse <em>is</em> the ON–OFF phenomenon.
+</div>
+</aside>
+
+</div><!-- /.main -->
+
+<footer>Department of Pharmacology · Maulana Azad Medical College · Offline CAL module</footer>
+</div>
+
+<script>
+const DOSES = [0, 4, 8];
+
+function plasmaC(t, severity) {
+  const s = severity / 100;
+  let c = 0;
+  for (const td of DOSES) {
+    const dt = t - td;
+    if (dt >= 0 && dt < 8) {
+      const peakH = 65 + s * 25;
+      const tPeak = 0.7 - s * 0.3;
+      const tHalf = 1.5 - s * 0.6;
+      const k = Math.log(2) / tHalf;
+      if (dt < tPeak) {
+        c += peakH * Math.sin((dt / tPeak) * Math.PI / 2);
+      } else {
+        c += peakH * Math.exp(-k * (dt - tPeak));
+      }
+    }
+  }
+  return c;
+}
+
+function getWindow(severity) {
+  const s = severity / 100;
+  return {
+    lower: 12 + s * 38,
+    upper: 88 - s * 30
+  };
+}
+
+function tToX(t) { return 60 + (t / 12) * 590; }
+function cToY(c) { return 270 - (c / 100) * 250; }
+
+function severityStage(sev) {
+  if (sev < 25) return { name: 'Early', color: '#3B6D11' };
+  if (sev < 60) return { name: 'Moderate (wearing-off)', color: '#854F0B' };
+  return { name: 'Advanced (ON–OFF)', color: '#A32D2D' };
+}
+
+function update() {
+  const sev = parseInt(document.getElementById('severity').value);
+  const stage = severityStage(sev);
+  document.getElementById('sev-label').innerHTML =
+    `Disease severity: ${sev}% — <span style="color:${stage.color}">${stage.name}</span>`;
+
+  let points = [];
+  let onCount = 0, offCount = 0, dyskCount = 0, total = 0;
+  const win = getWindow(sev);
+
+  for (let t = 0; t <= 12; t += 0.04) {
+    const c = plasmaC(t, sev);
+    points.push(`${tToX(t).toFixed(1)},${cToY(c).toFixed(1)}`);
+    if (c > win.upper) dyskCount++;
+    else if (c < win.lower) offCount++;
+    else onCount++;
+    total++;
+  }
+  document.getElementById('plasma-curve').setAttribute('points', points.join(' '));
+
+  const yUpper = cToY(win.upper);
+  const yLower = cToY(win.lower);
+  const winBand = document.getElementById('win-band');
+  winBand.setAttribute('y', yUpper);
+  winBand.setAttribute('height', Math.max(0, yLower - yUpper));
+  const dyskBand = document.getElementById('dysk-band');
+  dyskBand.setAttribute('y', 20);
+  dyskBand.setAttribute('height', Math.max(0, yUpper - 20));
+  const offBand = document.getElementById('off-band');
+  offBand.setAttribute('y', yLower);
+  offBand.setAttribute('height', Math.max(0, 270 - yLower));
+  document.getElementById('upper-line').setAttribute('y1', yUpper);
+  document.getElementById('upper-line').setAttribute('y2', yUpper);
+  document.getElementById('lower-line').setAttribute('y1', yLower);
+  document.getElementById('lower-line').setAttribute('y2', yLower);
+
+  document.getElementById('dysk-label').setAttribute('y', Math.max(38, yUpper - 6));
+  document.getElementById('win-label').setAttribute('y', (yUpper + yLower) / 2 + 4);
+  document.getElementById('off-label').setAttribute('y', Math.min(265, yLower + 18));
+
+  document.getElementById('dysk-label').style.display = (yUpper - 20 < 18) ? 'none' : '';
+  document.getElementById('win-label').style.display = (yLower - yUpper < 18) ? 'none' : '';
+  document.getElementById('off-label').style.display = (270 - yLower < 18) ? 'none' : '';
+
+  let stripHTML = '';
+  const stepT = 0.08;
+  for (let t = 0; t < 12; t += stepT) {
+    const c = plasmaC(t + stepT/2, sev);
+    let color;
+    if (c > win.upper) color = '#D85A30';
+    else if (c < win.lower) color = '#888780';
+    else color = '#639922';
+    const x = tToX(t);
+    const w = tToX(t + stepT) - x;
+    stripHTML += `<rect x="${x.toFixed(1)}" y="333" width="${(w + 0.5).toFixed(2)}" height="20" fill="${color}"/>`;
+  }
+  document.getElementById('strip').innerHTML = stripHTML;
+
+  document.getElementById('on-pct').textContent = Math.round(100 * onCount / total) + '%';
+  document.getElementById('off-pct').textContent = Math.round(100 * offCount / total) + '%';
+  document.getElementById('dysk-pct').textContent = Math.round(100 * dyskCount / total) + '%';
+
+  updateSidebar(sev);
+}
+
+function updateSidebar(sev) {
+  const title = document.getElementById('sb-title');
+  const content = document.getElementById('sb-content');
+  let t, html;
+  if (sev < 25) {
+    t = 'Early disease — "honeymoon"';
+    html = `<p>Many <strong>SNpc dopaminergic terminals</strong> remain. They take up exogenous L-dopa, convert it to dopamine, store it in vesicles and release it tonically.</p>
+<p>The striatum <strong>buffers</strong> plasma swings — even though plasma L-dopa rises and falls every 4 hours, striatal dopamine stays steady.</p>
+<p>The therapeutic window is <strong>wide</strong>: peaks never reach dyskinesia, troughs never reach OFF.</p>
+<p><em>Clinically:</em> dramatic and sustained response — the "honeymoon" of the first 3–5 years.</p>`;
+  } else if (sev < 60) {
+    t = 'Moderate disease — wearing-off';
+    html = `<p><strong>Striatal buffer capacity is declining.</strong> Fewer surviving terminals mean dopamine begins to track plasma swings.</p>
+<p>The patient notices benefit <strong>"wears off" before the next dose is due</strong> — classic <em>end-of-dose deterioration</em>. Brief OFF periods appear at troughs.</p>
+<p>Transitions are still <em>predictable</em> — they happen at the same time each cycle.</p>
+<p><em>Adjustments:</em> shorten dose interval, add a <strong>COMT inhibitor</strong> (entacapone, opicapone) or <strong>MAO-B inhibitor</strong> (rasagiline, safinamide) to flatten the curve. Add a <strong>long-acting dopamine agonist</strong> (pramipexole ER, rotigotine patch) for tonic background stimulation.</p>`;
+  } else {
+    t = 'Advanced disease — ON–OFF phenomenon';
+    html = `<p><strong>Severe nigral loss + maladaptive postsynaptic plasticity.</strong> Striatal dopamine now tracks plasma L-dopa <em>minute by minute</em>.</p>
+<p>The therapeutic window has shrunk to a <strong>knife edge</strong>:</p>
+<p>• <span style="color:#A32D2D;font-weight:600">Peaks → dyskinesia</span> (chorea, dystonia)<br>
+• <span style="color:#5F5E5A;font-weight:600">Troughs → OFF</span> (frozen, rigid, tremor)<br>
+• <span style="color:#3B6D11;font-weight:600">Only briefly ON</span> in between</p>
+<p>Switches are <strong>sudden and often unpredictable</strong> — the hallmark of true ON–OFF, distinct from wearing-off.</p>
+<p><em>Strategy — continuous dopaminergic stimulation:</em> levodopa-carbidopa intestinal gel (LCIG/Duodopa) via PEG-J, subcutaneous <strong>apomorphine</strong> infusion or rescue pen, transdermal rotigotine, and <strong>STN-DBS</strong> for refractory cases.</p>`;
+  }
+  title.textContent = t;
+  content.innerHTML = html;
+}
+
+function handleHover(e) {
+  const svg = document.getElementById('plot');
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return;
+  const svgPt = pt.matrixTransform(ctm.inverse());
+  const x = svgPt.x;
+  if (x < 60 || x > 650) { hideHover(); return; }
+  const t = (x - 60) / 590 * 12;
+  const sev = parseInt(document.getElementById('severity').value);
+  const c = plasmaC(t, sev);
+  const win = getWindow(sev);
+  let stateHTML;
+  if (c > win.upper) stateHTML = '<b style="color:#A32D2D">DYSKINESIA</b>';
+  else if (c < win.lower) stateHTML = '<b style="color:#5F5E5A">OFF</b>';
+  else stateHTML = '<b style="color:#3B6D11">ON</b>';
+
+  const cursor = document.getElementById('hover-cursor');
+  cursor.style.display = '';
+  cursor.setAttribute('x1', x);
+  cursor.setAttribute('x2', x);
+  const dot = document.getElementById('hover-dot');
+  dot.style.display = '';
+  dot.setAttribute('cx', x);
+  dot.setAttribute('cy', cToY(c));
+
+  document.getElementById('readout').innerHTML =
+    `Time: <b>${t.toFixed(1)} h</b> &nbsp;·&nbsp; Plasma: <b>${c.toFixed(0)}</b> &nbsp;·&nbsp; State: ${stateHTML}`;
+}
+
+function hideHover() {
+  document.getElementById('hover-cursor').style.display = 'none';
+  document.getElementById('hover-dot').style.display = 'none';
+  document.getElementById('readout').innerHTML =
+    'Move slider to change disease severity · hover over the curve for plasma value and patient state';
+}
+
+document.getElementById('severity').addEventListener('input', update);
+document.getElementById('hover-area').addEventListener('mousemove', handleHover);
+document.getElementById('hover-area').addEventListener('mouseleave', hideHover);
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+update();
+</script>
+</body>
+</html>

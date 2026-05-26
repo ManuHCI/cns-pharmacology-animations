@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basal Ganglia · DA–ACh Balance · MAMC Pharmacology CAL</title>
+<style>
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  height: 100vh; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #fafaf7;
+  color: #1f1f1c;
+  font-size: 16px;
+}
+.app { height: 100vh; display: flex; flex-direction: column; background: #fff; }
+header {
+  padding: 10px 24px 8px;
+  border-bottom: 1px solid #ececec;
+  flex-shrink: 0;
+}
+h1 { font-size: 21px; font-weight: 700; margin: 0 0 2px; color: #133a5e; }
+.subtitle { font-size: 13px; color: #666; }
+.state-bar {
+  display: flex;
+  gap: 10px;
+  padding: 10px 24px;
+  border-bottom: 1px solid #ececec;
+  background: #f9f8f3;
+  flex-shrink: 0;
+}
+.state-btn {
+  flex: 1;
+  padding: 12px 14px;
+  border: 2px solid #d0d0c8;
+  background: #fff;
+  color: #1f1f1c;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+.state-btn:hover { background: #f4f3ee; }
+.state-btn .key {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 6px;
+  background: #ececec;
+  border-radius: 4px;
+  margin-right: 6px;
+  color: #555;
+  font-weight: 600;
+}
+.state-btn.active {
+  background: #1d6fb8; color: #fff; border-color: #1d6fb8;
+  box-shadow: 0 2px 8px rgba(29,111,184,0.3);
+}
+.state-btn.active .key { background: rgba(255,255,255,0.25); color: #fff; }
+.main {
+  flex: 1; display: grid; grid-template-columns: 1fr 360px;
+  overflow: hidden; min-height: 0;
+}
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 1fr 300px; }
+  .state-btn { font-size: 13px; padding: 10px 10px; }
+}
+@media (max-width: 800px) {
+  .main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .sidebar { border-left: none !important; border-top: 1px solid #ececec; }
+}
+.canvas {
+  padding: 8px 20px 10px;
+  display: flex; flex-direction: column;
+  overflow: hidden; min-height: 0;
+}
+.svg-wrap {
+  flex: 1; min-height: 0;
+  display: flex; justify-content: center; align-items: center;
+}
+.circuit-svg { width: 100%; height: 100%; display: block; }
+.canvas-footer {
+  display: flex; gap: 16px; align-items: center;
+  padding: 4px 0 0; flex-shrink: 0;
+}
+.motor-wrap { flex: 1; display: flex; align-items: center; gap: 12px; }
+.motor-meter {
+  flex: 1; height: 20px;
+  background: #ececec; border-radius: 10px;
+  overflow: hidden; border: 1px solid #dcdcdc;
+}
+.motor-fill {
+  height: 100%; width: 85%;
+  background: #4A9D2A; border-radius: 10px;
+  transition: width 0.6s, background 0.6s;
+}
+.motor-label {
+  font-size: 14px; color: #333; font-weight: 700;
+  min-width: 240px;
+}
+.legend {
+  display: flex; gap: 14px; font-size: 12px; color: #555;
+  flex-wrap: wrap; padding: 4px 0 0;
+}
+.swatch {
+  display: inline-block; width: 22px; height: 3px;
+  vertical-align: middle; margin-right: 5px; border-radius: 1px;
+}
+.sidebar {
+  padding: 14px 18px 14px;
+  border-left: 1px solid #ececec;
+  background: #fbfaf6;
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+.sb-title { font-size: 18px; font-weight: 700; margin: 0 0 2px; color: #133a5e; }
+.sb-subtitle { font-size: 13px; color: #666; margin: 0 0 12px; font-style: italic; }
+.balance-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 0 0 12px;
+  border: 1px solid #ececec;
+}
+.balance-title {
+  font-size: 11px; color: #666; text-transform: uppercase;
+  letter-spacing: 0.05em; font-weight: 700; margin-bottom: 10px;
+}
+.bar-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.bar-label { min-width: 36px; font-weight: 700; font-size: 13px; }
+.bar-track {
+  flex: 1; height: 16px; background: #ececec;
+  border-radius: 8px; overflow: hidden; position: relative;
+}
+.bar-fill {
+  height: 100%; transition: width 0.6s ease-out, background 0.5s;
+  border-radius: 8px;
+}
+.da-fill { background: #BA7517; }
+.ach-fill { background: #A356C3; }
+.balance-status {
+  text-align: center; font-weight: 700; margin-top: 10px;
+  padding: 6px; border-radius: 6px; font-size: 13px;
+  transition: all 0.4s;
+}
+.balance-status.balanced { background: #DBEDC5; color: #1F4509; }
+.balance-status.imbalanced { background: #F8D3C5; color: #5D1F09; }
+.balance-status.partial { background: #FCE9C8; color: #5E3A05; }
+.sb-content { font-size: 13.5px; color: #2a2a2a; line-height: 1.5; }
+.sb-content p { margin: 0 0 8px; }
+.sb-content .pill {
+  display: inline-block; padding: 1px 7px; border-radius: 10px;
+  font-size: 12px; font-weight: 600; margin-right: 2px;
+}
+.pill-da { background: #FAEEDA; color: #6A3F08; border: 1px solid #DBA459; }
+.pill-ach { background: #F4E2FC; color: #5C2473; border: 1px solid #BD86D2; }
+.pill-d1 { background: #C9E8DC; color: #04342C; border: 1px solid #4FA688; }
+.pill-d2 { background: #FAD8CC; color: #4A1B0C; border: 1px solid #C77758; }
+.teaching-tip {
+  margin-top: auto;
+  padding: 8px 10px;
+  background: #F4ECFA;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #3D2858;
+  border-left: 3px solid #6B4D8B;
+}
+footer {
+  padding: 6px 24px;
+  border-top: 1px solid #ececec;
+  font-size: 12px; color: #888;
+  text-align: center; flex-shrink: 0;
+}
+.fullscreen-btn {
+  position: absolute; top: 10px; right: 22px;
+  padding: 6px 12px; font-size: 12px;
+  border: 1px solid #d0d0c8; background: #fff;
+  border-radius: 6px; cursor: pointer; color: #555;
+  z-index: 10;
+}
+.fullscreen-btn:hover { background: #f4f3ee; }
+
+/* === SVG === */
+@keyframes flow { to { stroke-dashoffset: -28; } }
+.pathway {
+  fill: none; stroke-width: 3.5;
+  stroke-dasharray: 7 9;
+  stroke-linecap: round;
+  animation: flow 2.2s linear infinite;
+  transition: stroke-width 0.5s, opacity 0.5s, animation-duration 0.5s;
+}
+.pathway.inhibit { stroke: #C04828; }
+.pathway.excite { stroke: #4A9D2A; }
+.pathway.dopamine { stroke: #BA7517; stroke-dasharray: 4 6; stroke-width: 4; }
+.pathway.ach-effect { stroke: #A356C3; stroke-dasharray: 3 5; stroke-width: 2.5; }
+
+.region rect, .region circle, .region ellipse {
+  transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s, opacity 0.5s;
+}
+.region text { transition: fill 0.5s; }
+
+.cortex-region rect { fill: #EEEDFE; stroke: #534AB7; stroke-width: 1.5; }
+.cortex-region text { fill: #26215C; }
+.striatum-bg rect { fill: #F8F2FC; stroke: #8865A8; stroke-width: 1; stroke-dasharray: 5 4; }
+.striatum-bg text { fill: #5A3A82; }
+.striatum-d1 rect { fill: #C9E8DC; stroke: #0F6E56; stroke-width: 1.5; }
+.striatum-d1 text { fill: #04342C; }
+.striatum-d2 rect { fill: #FAD8CC; stroke: #993C1D; stroke-width: 1.5; }
+.striatum-d2 text { fill: #4A1B0C; }
+.ach-region circle { fill: #F4E2FC; stroke: #A356C3; stroke-width: 2.5; }
+.ach-region text { fill: #5C2473; }
+.gpe-region rect, .gpi-region rect {
+  fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 1.5;
+}
+.gpe-region text, .gpi-region text { fill: #2C2C2A; }
+.stn-region rect { fill: #FAD8CC; stroke: #993C1D; stroke-width: 1.5; }
+.stn-region text { fill: #4A1B0C; }
+.thalamus-region rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 1.5; }
+.thalamus-region text { fill: #042C53; }
+.snpc-region rect { fill: #FAEEDA; stroke: #854F0B; stroke-width: 1.5; }
+.snpc-region text { fill: #412402; }
+
+.svg-title { font-size: 19px; font-weight: 700; }
+.svg-sub { font-size: 14px; font-weight: 500; }
+.svg-sm { font-size: 12px; font-weight: 600; }
+
+/* === STATE: PARKINSON'S === */
+[data-state="pd"] .snpc-region rect { fill: #E5E3DA; stroke: #888780; }
+[data-state="pd"] .snpc-region { opacity: 0.55; }
+[data-state="pd"] .dopamine { opacity: 0.1; animation-duration: 6s; stroke-width: 1.5; }
+[data-state="pd"] .direct { opacity: 0.25; animation-duration: 4.5s; stroke-width: 1.8; }
+[data-state="pd"] .indirect { stroke-width: 5; animation-duration: 0.8s; }
+[data-state="pd"] .gpi-out { stroke-width: 5; animation-duration: 0.8s; }
+[data-state="pd"] .thal-cort { opacity: 0.3; animation-duration: 4.5s; stroke-width: 1.8; }
+[data-state="pd"] .stn-region rect { fill: #E84A1D; stroke: #65240D; stroke-width: 3; }
+[data-state="pd"] .gpi-region rect { fill: #E84A1D; stroke: #65240D; stroke-width: 3; }
+[data-state="pd"] .gpi-region text, [data-state="pd"] .stn-region text { fill: #fff; }
+[data-state="pd"] .thalamus-region { opacity: 0.4; }
+[data-state="pd"] .cortex-region { opacity: 0.55; }
+[data-state="pd"] .ach-region circle {
+  fill: #C97BE3; stroke: #5C2473; stroke-width: 4;
+  filter: drop-shadow(0 0 8px rgba(163, 86, 195, 0.6));
+}
+[data-state="pd"] .ach-region text { fill: #fff; }
+[data-state="pd"] .da-ach-inhibit { opacity: 0.15; }
+
+/* === STATE: PD + LEVODOPA (close to normal) === */
+[data-state="ldopa"] .pathway.dopamine { stroke-width: 4.5; }
+[data-state="ldopa"] .snpc-region rect { fill: #FAEEDA; stroke: #854F0B; stroke-dasharray: 0; }
+[data-state="ldopa"] .ldopa-label { display: inline; }
+
+/* === STATE: PD + ANTICHOLINERGIC === */
+[data-state="anticholinergic"] .snpc-region rect { fill: #E5E3DA; stroke: #888780; }
+[data-state="anticholinergic"] .snpc-region { opacity: 0.5; }
+[data-state="anticholinergic"] .dopamine { opacity: 0.1; animation-duration: 6s; stroke-width: 1.5; }
+[data-state="anticholinergic"] .direct { opacity: 0.45; animation-duration: 3s; stroke-width: 2.5; }
+[data-state="anticholinergic"] .indirect { stroke-width: 3.5; animation-duration: 1.5s; }
+[data-state="anticholinergic"] .gpi-out { stroke-width: 3.5; animation-duration: 1.5s; }
+[data-state="anticholinergic"] .thal-cort { opacity: 0.7; animation-duration: 2.5s; stroke-width: 2.5; }
+[data-state="anticholinergic"] .stn-region rect { fill: #F4B398; stroke: #993C1D; }
+[data-state="anticholinergic"] .gpi-region rect { fill: #F4B398; stroke: #993C1D; }
+[data-state="anticholinergic"] .thalamus-region { opacity: 0.7; }
+[data-state="anticholinergic"] .cortex-region { opacity: 0.8; }
+[data-state="anticholinergic"] .ach-region circle { fill: #E5E3DA; stroke: #888780; opacity: 0.5; }
+[data-state="anticholinergic"] .ach-region text { fill: #888780; }
+[data-state="anticholinergic"] .ach-block { display: inline; }
+[data-state="anticholinergic"] .da-ach-inhibit { opacity: 0.1; }
+
+.ach-block { display: none; }
+.ldopa-label { display: none; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app" data-state="normal">
+<button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+
+<header>
+<h1>Basal ganglia circuit · Dopamine–Acetylcholine balance in Parkinson's disease</h1>
+<div class="subtitle">Mechanism of disease &amp; pharmacotherapy · MBBS Pharmacology · MAMC</div>
+</header>
+
+<div class="state-bar">
+<button class="state-btn active" onclick="setState('normal')" id="btn-normal"><span class="key">1</span>Normal</button>
+<button class="state-btn" onclick="setState('pd')" id="btn-pd"><span class="key">2</span>Parkinson's disease</button>
+<button class="state-btn" onclick="setState('ldopa')" id="btn-ldopa"><span class="key">3</span>+ Levodopa</button>
+<button class="state-btn" onclick="setState('anticholinergic')" id="btn-antich"><span class="key">4</span>+ Anticholinergic</button>
+</div>
+
+<div class="main">
+<div class="canvas">
+<div class="svg-wrap">
+<svg class="circuit-svg" viewBox="0 0 720 580" role="img" preserveAspectRatio="xMidYMid meet">
+<title>Basal ganglia circuit with cortex, striatum (D1/D2/ACh), GPe, STN, GPi, thalamus, SNpc</title>
+<desc>Interactive diagram showing the cortico-basal ganglia-thalamo-cortical loop and dopamine-acetylcholine balance in normal, Parkinson's disease, and treated states.</desc>
+
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+<marker id="bar" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<line x1="3" y1="1" x2="3" y2="9" stroke="context-stroke" stroke-width="2.5" stroke-linecap="round"/>
+</marker>
+</defs>
+
+<!-- CORTEX -->
+<g class="region cortex-region">
+<rect x="140" y="18" width="440" height="48" rx="8"/>
+<text class="svg-title" x="360" y="44" text-anchor="middle" dominant-baseline="central">Motor Cortex</text>
+</g>
+
+<!-- Cortex → Striatum (glutamate) -->
+<line class="pathway excite" x1="360" y1="66" x2="360" y2="110" marker-end="url(#arrow)"/>
+<text class="svg-sm" x="370" y="92" fill="#4A9D2A">glutamate (+)</text>
+
+<!-- STRIATUM background container -->
+<g class="region striatum-bg">
+<rect x="98" y="113" width="524" height="118" rx="12" fill-opacity="0.5"/>
+<text class="svg-sm" x="110" y="130">STRIATUM</text>
+</g>
+
+<!-- STRIATUM D1 -->
+<g class="region striatum-d1">
+<rect x="115" y="142" width="158" height="82" rx="8"/>
+<text class="svg-title" x="194" y="164" text-anchor="middle" dominant-baseline="central">D1 (Gs)</text>
+<text class="svg-sub" x="194" y="188" text-anchor="middle" dominant-baseline="central">Direct path</text>
+<text class="svg-sub" x="194" y="210" text-anchor="middle" dominant-baseline="central" style="font-weight:700">DA: + excites</text>
+</g>
+
+<!-- ACh interneuron -->
+<g class="region ach-region">
+<circle cx="360" cy="183" r="42"/>
+<text class="svg-title" x="360" y="177" text-anchor="middle" dominant-baseline="central">ACh</text>
+<text class="svg-sm" x="360" y="197" text-anchor="middle" dominant-baseline="central">interneuron</text>
+</g>
+
+<!-- ACh blocked indicator (anticholinergic state) -->
+<g class="ach-block">
+<line x1="324" y1="147" x2="396" y2="219" stroke="#C04828" stroke-width="6" stroke-linecap="round"/>
+<line x1="396" y1="147" x2="324" y2="219" stroke="#C04828" stroke-width="6" stroke-linecap="round"/>
+<text x="450" y="178" fill="#C04828" font-size="14" font-weight="700">M-blocked</text>
+</g>
+
+<!-- STRIATUM D2 -->
+<g class="region striatum-d2">
+<rect x="447" y="142" width="158" height="82" rx="8"/>
+<text class="svg-title" x="526" y="164" text-anchor="middle" dominant-baseline="central">D2 (Gi)</text>
+<text class="svg-sub" x="526" y="188" text-anchor="middle" dominant-baseline="central">Indirect path</text>
+<text class="svg-sub" x="526" y="210" text-anchor="middle" dominant-baseline="central" style="font-weight:700">DA: − inhibits</text>
+</g>
+
+<!-- DA → ACh inhibitory line (short, inside striatum) -->
+<line class="pathway dopamine da-ach-inhibit" x1="332" y1="220" x2="346" y2="208" marker-end="url(#bar)" stroke-width="2.5" stroke-dasharray="3 4"/>
+<text class="svg-sm" x="295" y="240" fill="#854F0B">DA inhibits ACh</text>
+
+<!-- L-DOPA label (shown only in ldopa state) -->
+<text class="ldopa-label" x="60" y="430" fill="#0F6E56" font-size="15" font-weight="700">L-DOPA → DA</text>
+
+<!-- D1 → GPi direct (inhibitory) -->
+<path class="pathway inhibit direct" d="M194 224 L194 380 L260 410" marker-end="url(#bar)"/>
+
+<!-- D2 → GPe (inhibitory) -->
+<line class="pathway inhibit indirect" x1="526" y1="224" x2="526" y2="252" marker-end="url(#bar)"/>
+
+<!-- GPe -->
+<g class="region gpe-region">
+<rect x="466" y="254" width="120" height="48" rx="6"/>
+<text class="svg-title" x="526" y="278" text-anchor="middle" dominant-baseline="central">GPe</text>
+</g>
+
+<!-- GPe → STN (inhibitory) -->
+<line class="pathway inhibit indirect" x1="526" y1="302" x2="526" y2="330" marker-end="url(#bar)"/>
+
+<!-- STN -->
+<g class="region stn-region">
+<rect x="466" y="332" width="120" height="48" rx="6"/>
+<text class="svg-title" x="526" y="356" text-anchor="middle" dominant-baseline="central">STN</text>
+</g>
+
+<!-- STN → GPi (excitatory) -->
+<path class="pathway excite indirect" d="M526 380 L526 396 L420 410" marker-end="url(#arrow)"/>
+
+<!-- GPi/SNr -->
+<g class="region gpi-region">
+<rect x="240" y="412" width="200" height="48" rx="6"/>
+<text class="svg-title" x="340" y="436" text-anchor="middle" dominant-baseline="central">GPi / SNr</text>
+</g>
+
+<!-- GPi → Thalamus (inhibitory) -->
+<line class="pathway inhibit gpi-out" x1="340" y1="460" x2="340" y2="485" marker-end="url(#bar)"/>
+
+<!-- THALAMUS -->
+<g class="region thalamus-region">
+<rect x="240" y="487" width="200" height="48" rx="6"/>
+<text class="svg-title" x="340" y="511" text-anchor="middle" dominant-baseline="central">Thalamus (VL)</text>
+</g>
+
+<!-- Thalamus → Cortex (excitatory return) -->
+<path class="pathway excite thal-cort" d="M440 511 L670 511 L670 42 L581 42" marker-end="url(#arrow)"/>
+<text class="svg-sm" x="690" y="280" fill="#4A9D2A" text-anchor="middle">thalamo-</text>
+<text class="svg-sm" x="690" y="298" fill="#4A9D2A" text-anchor="middle">cortical</text>
+<text class="svg-sm" x="690" y="316" fill="#4A9D2A" text-anchor="middle">return</text>
+
+<!-- SNpc -->
+<g class="region snpc-region">
+<rect x="180" y="540" width="360" height="38" rx="6"/>
+<text class="svg-title" x="360" y="561" text-anchor="middle" dominant-baseline="central">SNpc — dopamine source</text>
+</g>
+
+<!-- SNpc → Striatum dopamine projection -->
+<path class="pathway dopamine" d="M360 540 C 40 450, 40 240, 360 232" marker-end="url(#arrow)"/>
+<text class="svg-sub" x="55" y="365" fill="#BA7517" text-anchor="middle" style="font-weight:700">dopamine</text>
+
+</svg>
+</div>
+
+<div class="canvas-footer">
+<div class="motor-wrap">
+<span class="motor-label" id="motor-label">Motor output: HIGH</span>
+<div class="motor-meter"><div class="motor-fill" id="motor-fill"></div></div>
+</div>
+</div>
+
+<div class="legend">
+<span><span class="swatch" style="background:#4A9D2A"></span>Excitatory (glutamate)</span>
+<span><span class="swatch" style="background:#C04828"></span>Inhibitory (GABA)</span>
+<span><span class="swatch" style="background:#BA7517"></span>Dopamine</span>
+<span><span class="swatch" style="background:#A356C3"></span>Acetylcholine</span>
+</div>
+</div>
+
+<aside class="sidebar">
+<div class="sb-title" id="sb-title">Normal state</div>
+<div class="sb-subtitle" id="sb-subtitle">DA–ACh balance maintained</div>
+
+<div class="balance-card">
+<div class="balance-title">Striatal DA ⇌ ACh balance</div>
+<div class="bar-row">
+<span class="bar-label" style="color:#BA7517">DA</span>
+<div class="bar-track"><div class="bar-fill da-fill" id="da-bar" style="width:75%"></div></div>
+</div>
+<div class="bar-row">
+<span class="bar-label" style="color:#A356C3">ACh</span>
+<div class="bar-track"><div class="bar-fill ach-fill" id="ach-bar" style="width:40%"></div></div>
+</div>
+<div class="balance-status balanced" id="balance-status">BALANCED — movement OK</div>
+</div>
+
+<div class="sb-content" id="sb-content"></div>
+
+<div class="teaching-tip" id="teaching-tip">
+<strong>Click states 1 → 2 → 3 → 4</strong> (or press 1–4 / Space). Watch the <span style="color:#A356C3;font-weight:700">purple ACh circle</span> swell in PD, then settle again when treatment restores balance.
+</div>
+</aside>
+</div>
+
+<footer>Department of Pharmacology · Maulana Azad Medical College · Offline CAL — designed for lecture-hall projection</footer>
+</div>
+
+<script>
+const STATES = {
+  normal: {
+    title: "Normal state",
+    subtitle: "DA suppresses ACh · balance maintained · smooth movement",
+    motorLabel: "Motor output: HIGH (normal)",
+    motorFill: 85, motorColor: '#4A9D2A',
+    daBar: 75, achBar: 40,
+    balanceText: "BALANCED — movement OK", balanceClass: "balanced",
+    content: `
+      <p><strong>SNpc</strong> releases dopamine onto the striatum, where it acts at <strong>three</strong> targets:</p>
+      <p>• <span class="pill pill-d1">D1 (Gs)</span> excites direct path<br>
+      • <span class="pill pill-d2">D2 (Gi)</span> inhibits indirect path<br>
+      • <span class="pill pill-ach">ACh interneuron</span> suppressed by DA</p>
+      <p>Net effect: direct path facilitated, indirect path silenced, ACh kept in check → <strong>fluid movement</strong>.</p>
+    `
+  },
+  pd: {
+    title: "Parkinson's disease",
+    subtitle: "DA lost · ACh disinhibited · circuit imbalanced",
+    motorLabel: "Motor output: LOW (bradykinesia)",
+    motorFill: 22, motorColor: '#C04828',
+    daBar: 12, achBar: 90,
+    balanceText: "IMBALANCED — ACh dominates", balanceClass: "imbalanced",
+    content: `
+      <p><strong>SNpc neurons degenerate</strong> → striatal dopamine falls by ~80%.</p>
+      <p>Loss of DA causes <strong>two simultaneous problems</strong>:</p>
+      <p>1. <span class="pill pill-d1">D1</span> no longer excited → direct path under-active<br>
+      2. <span class="pill pill-d2">D2</span> no longer inhibited → indirect path hyperactive<br>
+      3. <span class="pill pill-ach">ACh</span> released from suppression → cholinergic over-activity</p>
+      <p><strong>STN and GPi become hyperactive</strong> → thalamus over-inhibited → cortex silenced → <strong>bradykinesia, rigidity, tremor</strong>.</p>
+      <p style="color:#5C2473"><em>ACh excess particularly drives tremor and rigidity.</em></p>
+    `
+  },
+  ldopa: {
+    title: "PD + Levodopa",
+    subtitle: "DA replaced · balance restored from the DA side",
+    motorLabel: "Motor output: NEAR-NORMAL",
+    motorFill: 78, motorColor: '#4A9D2A',
+    daBar: 72, achBar: 42,
+    balanceText: "BALANCED — DA restored", balanceClass: "balanced",
+    content: `
+      <p><strong>Levodopa</strong> (with carbidopa) crosses the BBB and is converted to DA by surviving neurons.</p>
+      <p>Restored DA once again:</p>
+      <p>• Excites <span class="pill pill-d1">D1</span> → direct path back online<br>
+      • Inhibits <span class="pill pill-d2">D2</span> → indirect path silenced<br>
+      • Re-suppresses <span class="pill pill-ach">ACh</span> → cholinergic excess corrected</p>
+      <p><strong>Best</strong> for bradykinesia &amp; rigidity. Most effective drug overall.</p>
+      <p><strong>Limitation:</strong> long-term — wearing-off, ON-OFF, peak-dose dyskinesias.</p>
+    `
+  },
+  anticholinergic: {
+    title: "PD + Anticholinergic",
+    subtitle: "ACh blocked · balance restored from the ACh side",
+    motorLabel: "Motor output: PARTIAL improvement",
+    motorFill: 55, motorColor: '#9D8B2A',
+    daBar: 12, achBar: 18,
+    balanceText: "BALANCED at low set-point", balanceClass: "partial",
+    content: `
+      <p><strong>Trihexyphenidyl, Benztropine, Procyclidine</strong> block <strong>muscarinic (M1)</strong> receptors in the striatum.</p>
+      <p>DA is still low — but the cholinergic over-activity is silenced → <strong>balance restored from the other arm</strong>.</p>
+      <p><strong>Best for:</strong> <em>tremor</em> &amp; <em>rigidity</em> (ACh-driven). Less helpful for bradykinesia.</p>
+      <p><strong>Indications:</strong><br>
+      • Young patients with tremor-predominant PD<br>
+      • <strong>Drug-induced parkinsonism</strong> (from antipsychotics) — first-line</p>
+      <p><strong>Caution:</strong> classical anticholinergic adverse effects — confusion (avoid in elderly), dry mouth, urinary retention, glaucoma, constipation.</p>
+    `
+  }
+};
+
+function setState(s) {
+  const app = document.getElementById('app');
+  app.dataset.state = s;
+  document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+  const btnMap = { normal: 'btn-normal', pd: 'btn-pd', ldopa: 'btn-ldopa', anticholinergic: 'btn-antich' };
+  document.getElementById(btnMap[s]).classList.add('active');
+
+  const c = STATES[s];
+  document.getElementById('sb-title').textContent = c.title;
+  document.getElementById('sb-subtitle').textContent = c.subtitle;
+  document.getElementById('sb-content').innerHTML = c.content;
+  document.getElementById('motor-label').textContent = c.motorLabel;
+
+  const fill = document.getElementById('motor-fill');
+  fill.style.width = c.motorFill + '%';
+  fill.style.background = c.motorColor;
+
+  document.getElementById('da-bar').style.width = c.daBar + '%';
+  document.getElementById('ach-bar').style.width = c.achBar + '%';
+
+  const status = document.getElementById('balance-status');
+  status.textContent = c.balanceText;
+  status.className = 'balance-status ' + c.balanceClass;
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+const stateOrder = ['normal', 'pd', 'ldopa', 'anticholinergic'];
+document.addEventListener('keydown', (e) => {
+  const map = { '1': 'normal', '2': 'pd', '3': 'ldopa', '4': 'anticholinergic' };
+  if (map[e.key]) {
+    setState(map[e.key]);
+    e.preventDefault();
+  } else if (e.code === 'Space') {
+    e.preventDefault();
+    const cur = document.getElementById('app').dataset.state;
+    const idx = stateOrder.indexOf(cur);
+    setState(stateOrder[(idx + 1) % stateOrder.length]);
+  }
+});
+
+setState('normal');
+</script>
+</body>
+</html>

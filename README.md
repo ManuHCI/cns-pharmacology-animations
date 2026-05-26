@@ -1,6 +1,6 @@
 # CNS Pharmacology Animations
 
-Interactive, browser-based animations for teaching CNS Pharmacology to MBBS and MD Pharmacology students. Each animation is a single, self-contained HTML file — no installation, no dependencies. Open in any modern browser, or project directly in a lecture hall.
+Interactive, browser-based animations for teaching CNS Pharmacology to MBBS and MD Pharmacology students. Each animation is a single, self-contained HTML file, no installation, no dependencies. Open in any modern browser, or project directly in a lecture hall.
 
 **Live site:** https://manuhci.github.io/cns-pharmacology-animations/
 
@@ -18,10 +18,35 @@ Developed at the Department of Pharmacology, Maulana Azad Medical College & Lok 
 | Benzodiazepines vs Barbiturates: Dose–response and ceiling effect | [Open](https://manuhci.github.io/cns-pharmacology-animations/sedative-hypnotics/benzo-barb-dose-response.html) | [HTML](sedative-hypnotics/benzo-barb-dose-response.html) |
 
 ### General Anesthesia
-*Coming soon*
+
+| Topic | Live view | Source |
+|---|---|---|
+| Nitrous Oxide: Second gas effect | [Open](https://manuhci.github.io/cns-pharmacology-animations/general-anesthesia/n2o-second-gas-effect.html) | [HTML](general-anesthesia/n2o-second-gas-effect.html) |
+| Nitrous Oxide: Diffusion hypoxia | [Open](https://manuhci.github.io/cns-pharmacology-animations/general-anesthesia/n2o-diffusion-hypoxia.html) | [HTML](general-anesthesia/n2o-diffusion-hypoxia.html) |
+
+### Antiepileptic Drugs
+
+| Topic | Live view | Source |
+|---|---|---|
+| GABA–Glutamate balance in epilepsy | [Open](https://manuhci.github.io/cns-pharmacology-animations/epilepsy/gaba-glutamate-balance.html) | [HTML](epilepsy/gaba-glutamate-balance.html) |
+| Sodium channel blockers: use-dependent block | [Open](https://manuhci.github.io/cns-pharmacology-animations/epilepsy/sodium-channel-blockers.html) | [HTML](epilepsy/sodium-channel-blockers.html) |
+| Phenytoin: saturation (non-linear) kinetics | [Open](https://manuhci.github.io/cns-pharmacology-animations/epilepsy/phenytoin-saturation-kinetics.html) | [HTML](epilepsy/phenytoin-saturation-kinetics.html) |
+
+### Antipsychotics
+
+| Topic | Live view | Source |
+|---|---|---|
+| FGA vs SGA at the D2 receptor: dopamine binding and 5-HT2A antagonism | [Open](https://manuhci.github.io/cns-pharmacology-animations/antipsychotics/Dopamine_at_D2_SGA_vs_FGA.html) | [HTML](antipsychotics/Dopamine_at_D2_SGA_vs_FGA.html) |
+
+### Antiparkinsonian Drugs
+
+| Topic | Live view | Source |
+|---|---|---|
+| Basal ganglia: Dopamine–Acetylcholine balance | [Open](https://manuhci.github.io/cns-pharmacology-animations/parkinsons/Basal_ganglia_D_Ach_balance.html) | [HTML](parkinsons/Basal_ganglia_D_Ach_balance.html) |
+| Levodopa: On–Off phenomenon simulator | [Open](https://manuhci.github.io/cns-pharmacology-animations/parkinsons/levodopa_on_off_simulator.html) | [HTML](parkinsons/levodopa_on_off_simulator.html) |
 
 ### Additional chapters
-*Coming soon — opioid analgesics, antiepileptics, antipsychotics, antidepressants*
+*Coming soon — opioid analgesics, antidepressants*
 
 ---
 
