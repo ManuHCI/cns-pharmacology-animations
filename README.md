@@ -83,6 +83,7 @@ You are free to share and adapt the material for any purpose, including commerci
 Professor, Department of Pharmacology
 Maulana Azad Medical College & Lok Nayak Hospital, New Delhi
 University of Delhi
+Linkedin: linkedin.com/in/manukumarshetty
 ORCID: [0000-0002-9767-5092](https://orcid.org/0000-0002-9767-5092)
 GitHub: [@ManuHCI](https://github.com/ManuHCI)
 
